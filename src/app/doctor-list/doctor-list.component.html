@@ -1,0 +1,35 @@
+<div class="wrap">
+  <div class="card">
+
+    <h1>Doctors</h1>
+    <p class="sub">{{ doctors.length }} consultants</p>
+
+    <p class="state" *ngIf="loading">Loading doctors...</p>
+
+    <div class="grid" *ngIf="!loading">
+      <article class="doc" *ngFor="let d of doctors; trackBy: trackById">
+
+        <div class="top">
+          <h2>{{ d.name }}</h2>
+          <span class="fee">₹{{ d.consultationFee }}</span>
+        </div>
+
+        <p class="spec">{{ d.specialty }}</p>
+        <p class="qual">{{ d.qualification }}</p>
+
+        <div class="meta">
+          <span>{{ d.experienceYears }} yrs experience</span>
+          <span>{{ d.languages.join(', ') }}</span>
+        </div>
+
+        <div class="days">
+          <span class="day" *ngFor="let day of d.availableDays">{{ day }}</span>
+        </div>
+
+        <p class="reg">Reg. {{ d.registrationNo }}</p>
+
+      </article>
+    </div>
+
+  </div>
+</div>
