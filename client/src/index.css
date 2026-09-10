@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-cta: var(--cta);
+}
+
+:root {
+  /* Accessible Medical Teal Theme */
+  --background: #F0FDFA; /* Teal 50 */
+  --foreground: #134E4A; /* Teal 900 */
+  --card: #ffffff;
+  --card-foreground: #134E4A;
+  --border: #CCFBF1; /* Teal 100 */
+  --ring: #0891B2; /* Cyan 600 */
+  --primary: #0891B2; /* Cyan 600 */
+  --secondary: #22D3EE; /* Cyan 400 */
+  --cta: #22C55E; /* Green 500 */
+  --radius: 0.85rem;
+}
+
+.dark {
+  --background: #042F2E;
+  --foreground: #F0FDFA;
+  --card: #134E4A;
+  --card-foreground: #F0FDFA;
+  --border: rgba(255, 255, 255, 0.1);
+  --ring: #22D3EE;
+  --primary: #22D3EE;
+  --secondary: #0891B2;
+  --cta: #4ADE80;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { font-family: 'Noto Sans', ui-sans-serif, system-ui, sans-serif; }
+  body { @apply bg-background text-foreground antialiased; margin: 0; min-width: 320px; }
+  button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
+  button:focus-visible, a:focus-visible { @apply outline-4 outline-offset-2 outline-ring; }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif; }
+  
+  /* Scroll Craft Specific Utilities */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+@keyframes dashboard-page-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.dashboard-page-transition {
+  animation: dashboard-page-enter 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page-transition { animation: none; }
+}
