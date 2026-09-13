@@ -105,6 +105,13 @@ export interface PatientCase {
  text: string;
  timestamp: string;
  }>;
+ documents?: Array<{
+ id: string;
+ name: string;
+ type: string;
+ url: string;
+ uploadedAt: string;
+ }>;
 }
 
 export interface ExecutiveAlert {
@@ -154,6 +161,7 @@ interface PediatricContextType {
  urgency: PatientCase["urgency"];
  vitals: VitalsData;
  ward: PatientCase["ward"];
+ documents?: PatientCase["documents"];
  }
  ) => { patientId: string; caseId: string };
 
@@ -796,6 +804,7 @@ export const PediatricProvider: React.FC<{ children: React.ReactNode }> = ({ chi
  timestamp: now,
  },
  ],
+ documents: caseData.documents || [],
  };
 
  setPatients(prev => [newPatient, ...prev]);
@@ -871,8 +880,8 @@ export const PediatricProvider: React.FC<{ children: React.ReactNode }> = ({ chi
        severity: "critical",
        checkpointType: "vitals_unresolved",
        title: "Predictive AI: Clinical Deterioration Risk",
-       details: `Early complication detection model flagged rapid degradation based on vitals trend (SpO2: ${newVitals.spO2}%, HR: ${newVitals.heartRate}). High risk of respiratory failure. Immediate intervention recommended.`,
-       timestamp: now,
+       detail: `Early complication detection model flagged rapid degradation based on vitals trend (SpO2: ${newVitals.spO2}%, HR: ${newVitals.heartRate}). High risk of respiratory failure. Immediate intervention recommended.`,
+       createdAt: now,
        acknowledged: false
      };
      

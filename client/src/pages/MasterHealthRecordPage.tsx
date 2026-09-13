@@ -87,6 +87,12 @@ export const MasterHealthRecordPage: React.FC = () => {
  </div>
 
  <div className="flex flex-wrap items-center gap-2">
+ <button 
+ onClick={() => window.print()}
+ className="rounded-none px-3 py-1.5 text-xs font-bold border bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors flex items-center gap-1.5 print:hidden cursor-pointer"
+ >
+ <Download className="w-3.5 h-3.5" /> Export Record
+ </button>
  <span
  className={`rounded-none px-3 py-1.5 text-xs font-extrabold border ${
  patient.riskCategory === "Critical"
@@ -371,28 +377,21 @@ export const MasterHealthRecordPage: React.FC = () => {
  {activeTab === "documents" && (
  <div className="grid gap-4 sm:grid-cols-3">
  {[
- {
- title: "Chest X-Ray (AP Portable)",
- type: "PACS Imaging",
- date: "2026-09-08",
- icon: FileImage,
- content: "DICOM Preview Study #8891: Mild bilateral perihilar opacities; no pleural effusion reported.",
- },
- {
- title: "Pediatric Echocardiogram Report",
- type: "Cardiology Lab",
- date: "2026-09-08",
- icon: FlaskConical,
- content: "Perimembranous VSD 4.2mm with left-to-right shunt. LVEF 62%. Preserved LV systolic function.",
- },
- {
- title: "Digital Guardian Consent Form",
- type: "Legal Consent",
- date: "2026-09-08",
- icon: FileText,
- content: "HIPAA / DPDP 2023 Digital Consent signed by Sunita Menon (Mother). Verified timestamp 08:30 UTC.",
- },
- ].map((doc, idx) => {
+          ...(activeCase.documents?.map(doc => ({
+            title: doc.name,
+            type: doc.type,
+            date: new Date(doc.uploadedAt).toLocaleDateString(),
+            icon: doc.type.includes('image') ? FileImage : FileText,
+            content: `Simulated uploaded document: ${doc.name}`,
+          })) || []),
+          {
+            title: "Digital Guardian Consent Form",
+            type: "Legal Consent",
+            date: "2026-09-08",
+            icon: FileText,
+            content: "HIPAA / DPDP 2023 Digital Consent signed by Sunita Menon (Mother). Verified timestamp 08:30 UTC.",
+          },
+        ].map((doc, idx) => {
  const Icon = doc.icon;
  return (
  <div
