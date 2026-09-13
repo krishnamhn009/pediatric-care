@@ -17,6 +17,7 @@ import { ParentPortal } from "./pages/ParentPortal";
 import { MasterDataAdminPage } from "./pages/MasterDataAdminPage";
 import { KnowledgeRepositoryPage } from "./pages/KnowledgeRepositoryPage";
 import { MultidisciplinaryWorkspacePage } from "./pages/MultidisciplinaryWorkspacePage";
+import { PatientListPage } from "./pages/PatientListPage";
 
 function AppRoutes() {
   return (
@@ -49,8 +50,8 @@ function AppRoutes() {
 
         {/* Shared Clinical Routes */}
         <Route element={<ProtectedRoute allowedRoles={["Nurse", "Pediatrician", "Specialist", "Executive"]} />}>
+          <Route path="/patients" element={<PatientListPage />} />
           <Route path="/patients/:id" element={<MasterHealthRecordPage />} />
-          <Route path="/patients" element={<Navigate to="/patients/PT-1001" replace />} />
           <Route path="/alerts" element={<AlertsClosurePage />} />
         </Route>
       </Route>

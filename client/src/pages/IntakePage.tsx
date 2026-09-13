@@ -10,6 +10,10 @@ import {
  Activity,
  ArrowRight,
  Sparkles,
+ UploadCloud,
+ Trash2,
+ File,
+ Image as ImageIcon,
 } from "lucide-react";
 import { usePediatric, VitalsData } from "../context/PediatricContext";
 import { evaluateVitals, getPediatricVitalsRange } from "../utils/vitalsThresholds";
@@ -51,6 +55,7 @@ export const IntakePage: React.FC = () => {
  const [temperature, setTemperature] = useState(38.2);
  const [weightKg, setWeightKg] = useState(12.5);
  const [painScale, setPainScale] = useState(5);
+ const [uploadedFiles, setUploadedFiles] = useState<{ id: string; name: string; type: string; url: string; uploadedAt: string }[]>([]);
 
  // Calculate age-based vitals evaluation
  const vitalsRange = useMemo(() => getPediatricVitalsRange(ageYears), [ageYears]);
@@ -117,11 +122,25 @@ export const IntakePage: React.FC = () => {
  urgency,
  vitals: vitalsObj,
  ward,
+ documents: uploadedFiles,
  }
  );
 
  // Redirect to Specialist Recommendation engine for this case!
  navigate(`/recommendation?caseId=${caseId}`);
+ };
+
+ const handleSimulatedUpload = () => {
+ const mockFiles = [
+ { id: `DOC-${Date.now()}-1`, name: "Previous_Discharge_Summary.pdf", type: "application/pdf", url: "#", uploadedAt: new Date().toISOString() },
+ { id: `DOC-${Date.now()}-2`, name: "Chest_XRay_AP.jpg", type: "image/jpeg", url: "#", uploadedAt: new Date().toISOString() },
+ { id: `DOC-${Date.now()}-3`, name: "Recent_Blood_Panel.csv", type: "text/csv", url: "#", uploadedAt: new Date().toISOString() }
+ ];
+ setUploadedFiles(prev => [...prev, ...mockFiles]);
+ };
+
+ const handleRemoveFile = (id: string) => {
+ setUploadedFiles(prev => prev.filter(f => f.id !== id));
  };
 
  return (
@@ -490,6 +509,54 @@ export const IntakePage: React.FC = () => {
  </div>
  </div>
  </div>
+ </section>
+
+ {/* Section 3: Prior Medical Records & Imaging */}
+ <section className="rounded-none border border-cyan-100 bg-white p-6 shadow-none border border-cyan-100 space-y-6">
+ <div className="flex items-center gap-2 border-b border-cyan-100 pb-4">
+ <div className="grid h-8 w-8 place-items-center rounded-none bg-[#059669]/10 text-[#0891B2] font-bold -[#0891B2]">
+ 3
+ </div>
+ <h2 className="font-display text-lg font-bold text-[#164E63]">
+ Prior Medical Records & Imaging
+ </h2>
+ </div>
+ <p className="text-sm text-[#164E63]/70">Attach any existing clinical notes, lab results, X-rays, or discharge summaries to append to the Master Health Record.</p>
+
+ <div className="border-2 border-dashed border-cyan-200 bg-[#ECFEFF]/50 p-8 text-center flex flex-col items-center justify-center rounded-sm">
+ <UploadCloud className="h-10 w-10 text-[#0891B2] mb-3" />
+ <h3 className="text-sm font-bold text-[#164E63] mb-1">Drag & drop files here</h3>
+ <p className="text-xs text-[#164E63]/60 mb-4">Supports PDF, JPG, PNG, CSV (Max 50MB)</p>
+ <button 
+ type="button" 
+ onClick={handleSimulatedUpload}
+ className="bg-white border border-cyan-200 text-[#0891B2] text-xs font-bold py-2 px-4 shadow-sm hover:bg-cyan-50 transition-colors"
+ >
+ Simulate Browse Files
+ </button>
+ </div>
+
+ {uploadedFiles.length > 0 && (
+ <div className="space-y-2 mt-4">
+ <h4 className="text-xs font-bold text-[#164E63] uppercase tracking-wider mb-2">Attached Documents ({uploadedFiles.length})</h4>
+ {uploadedFiles.map(file => (
+ <div key={file.id} className="flex items-center justify-between p-3 border border-cyan-100 bg-white">
+ <div className="flex items-center gap-3">
+ <div className="bg-cyan-50 p-2 rounded-none text-[#0891B2]">
+ {file.type.includes("image") ? <ImageIcon className="h-4 w-4" /> : <File className="h-4 w-4" />}
+ </div>
+ <div>
+ <p className="text-xs font-bold text-[#164E63]">{file.name}</p>
+ <p className="text-[10px] text-[#164E63]/60 uppercase">{file.type}</p>
+ </div>
+ </div>
+ <button type="button" onClick={() => handleRemoveFile(file.id)} className="text-rose-500 hover:text-rose-700 p-2">
+ <Trash2 className="h-4 w-4" />
+ </button>
+ </div>
+ ))}
+ </div>
+ )}
  </section>
 
  {/* Submit & Trigger Recommendation Button */}

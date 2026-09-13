@@ -36,10 +36,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { label: "Intake & Assessment", to: "/intake", icon: UserPlus },
     { label: "Specialist Matcher", to: "/recommendation", icon: BrainCircuit },
     {
-      label: "Master Health Record",
-      to: "/patients/PT-1001",
+      label: "Patient Directory",
+      to: "/patients",
       icon: FileHeart,
-      activeSubpath: "/patients/",
+      activeSubpath: "/patients",
     },
     {
       label: "Specialist Workspace",
