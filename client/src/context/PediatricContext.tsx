@@ -145,12 +145,28 @@ export interface AuditLogEntry {
  exceptionReason?: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface ChatThread {
+  patientId: string;
+  specialistIds: string[];
+  messages: ChatMessage[];
+}
+
 interface PediatricContextType {
  patients: Patient[];
  cases: PatientCase[];
  specialists: Specialist[];
  alerts: ExecutiveAlert[];
  auditLog: AuditLogEntry[];
+ chats: ChatThread[];
 
  // CRUD Operations & Actions
  registerIntake: (
@@ -187,6 +203,11 @@ interface PediatricContextType {
  getPatientById: (patientId: string) => Patient | undefined;
  getCaseById: (caseId: string) => PatientCase | undefined;
  getCaseByPatientId: (patientId: string) => PatientCase | undefined;
+
+ // Chat Actions
+ getChatThread: (patientId: string) => ChatThread | undefined;
+ startChatThread: (patientId: string, specialistIds: string[]) => void;
+ addChatMessage: (patientId: string, message: Omit<ChatMessage, "id" | "timestamp">) => void;
 
  // Master Data Admin
  addSpecialist: (specialistData: Omit<Specialist, "id">) => void;
@@ -735,6 +756,11 @@ export const PediatricProvider: React.FC<{ children: React.ReactNode }> = ({ chi
  return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOG;
  });
 
+ const [chats, setChats] = useState<ChatThread[]>(() => {
+ const saved = localStorage.getItem("pcn_chats");
+ return saved ? JSON.parse(saved) : [];
+ });
+
  // Save to LocalStorage whenever state changes
  useEffect(() => {
  localStorage.setItem("pcn_patients", JSON.stringify(patients));
@@ -751,6 +777,36 @@ export const PediatricProvider: React.FC<{ children: React.ReactNode }> = ({ chi
  useEffect(() => {
  localStorage.setItem("pcn_audit_log", JSON.stringify(auditLog));
  }, [auditLog]);
+
+ useEffect(() => {
+ localStorage.setItem("pcn_chats", JSON.stringify(chats));
+ }, [chats]);
+
+ const getChatThread = (patientId: string) => {
+   return chats.find(c => c.patientId === patientId);
+ };
+
+ const startChatThread = (patientId: string, specialistIds: string[]) => {
+   setChats(prev => {
+     if (prev.find(c => c.patientId === patientId)) return prev;
+     return [...prev, { patientId, specialistIds, messages: [] }];
+   });
+ };
+
+ const addChatMessage = (patientId: string, message: Omit<ChatMessage, "id" | "timestamp">) => {
+   const newMessage: ChatMessage = {
+     ...message,
+     id: `MSG-${Date.now().toString().slice(-6)}`,
+     timestamp: new Date().toISOString()
+   };
+   
+   setChats(prev => prev.map(chat => {
+     if (chat.patientId === patientId) {
+       return { ...chat, messages: [...chat.messages, newMessage] };
+     }
+     return chat;
+   }));
+ };
 
  const addAuditEntry = (entry: Omit<AuditLogEntry, "id" | "timestamp">) => {
  const newEntry: AuditLogEntry = {
@@ -1271,6 +1327,7 @@ export const PediatricProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   specialists,
   alerts,
   auditLog,
+  chats,
   registerIntake,
   updateCaseStage,
   updateCaseVitals,
@@ -1284,6 +1341,9 @@ export const PediatricProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   getPatientById,
   getCaseById,
   getCaseByPatientId,
+  getChatThread,
+  startChatThread,
+  addChatMessage,
   addSpecialist,
   updateSpecialist,
   removeSpecialist

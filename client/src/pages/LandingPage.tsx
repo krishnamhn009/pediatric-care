@@ -33,6 +33,7 @@ export const LandingPage: React.FC = () => {
  
  // Login Modal State
  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+ const [activeTab, setActiveTab] = useState<"login" | "register">("login");
  const [selectedRole, setSelectedRole] = useState("Chief Pediatrician");
 
  // Prevent background scrolling when modal is open
@@ -321,48 +322,86 @@ export const LandingPage: React.FC = () => {
   {/* Login Modal */}
   {isLoginModalOpen && createPortal(
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4">
-  <div className="w-full max-w-md max-h-[95vh] overflow-y-auto rounded-none bg-white p-6 shadow-2xl border border-cyan-100 dashboard-page-transition">
-  <div className="flex items-center justify-between border-b border-cyan-50 pb-4 mb-4">
-  <div className="flex items-center gap-3">
-  <div className="bg-slate-100 p-2 rounded-none text-[#164E63]"><Stethoscope className="w-6 h-6"/></div>
-  <div>
-  <h3 className="text-lg font-extrabold text-[#164E63]">Clinician Login</h3>
-  <p className="text-xs text-[#164E63]/60">Pediatric Care Network</p>
-  </div>
-  </div>
-  <button onClick={() => setIsLoginModalOpen(false)} className="text-[#164E63]/40 hover:bg-slate-100 p-2 rounded-none cursor-pointer"><X className="w-5 h-5"/></button>
-  </div>
+  <div className="w-full max-w-xl max-h-[95vh] overflow-y-auto rounded-none bg-white p-0 shadow-2xl border border-cyan-100 dashboard-page-transition flex flex-col">
+    {/* Header */}
+    <div className="bg-[#164E63] text-white p-6 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="bg-white/20 p-2 rounded-none"><Stethoscope className="w-6 h-6"/></div>
+        <div>
+          <h3 className="text-xl font-extrabold">Welcome to PCN</h3>
+          <p className="text-xs text-white/70">Pediatric Care Network Portal</p>
+        </div>
+      </div>
+      <button onClick={() => setIsLoginModalOpen(false)} className="text-white/70 hover:bg-white/10 p-2 rounded-none cursor-pointer"><X className="w-6 h-6"/></button>
+    </div>
 
-  <div className="space-y-3">
-  <label className="block text-sm font-bold text-[#164E63]">Select Demo Role</label>
-  {[
-  { role: "Chief Pediatrician", desc: "Command Center & Intakes" },
-  { role: "Hospital Executive", desc: "Network Dashboards" },
-  { role: "Lead Cardiologist", desc: "Specialist Workspace" },
-  { role: "PICU Triage Nurse", desc: "Intake & Vitals Triage" },
-  { role: "Parent / Guardian", desc: "Family Portal View" },
-  { role: "System Administrator", desc: "Master Data Config" },
-  ].map(item => (
-  <button
-  key={item.role}
-  onClick={() => setSelectedRole(item.role)}
-  className={`w-full text-left p-3 rounded-none border-2 transition-all cursor-pointer ${
-  selectedRole === item.role ? "border-blue-600 bg-cyan-50" : "border-cyan-50 bg-white hover:border-cyan-100"
-  }`}
-  >
-  <div className="flex justify-between items-center">
-  <span className="font-extrabold text-[#164E63] text-sm">{item.role}</span>
-  {selectedRole === item.role && <CheckCircle2 className="w-4 h-4 text-[#0891B2]"/>}
-  </div>
-  <p className="text-[10px] text-[#164E63]/60 mt-0.5">{item.desc}</p>
-  </button>
-  ))}
-  </div>
+    {/* Tabs */}
+    <div className="flex border-b border-gray-200">
+      <button 
+        onClick={() => setActiveTab("login")}
+        className={`flex-1 py-4 text-center font-bold border-b-4 ${activeTab === "login" ? "text-[#164E63] border-[#0891B2] bg-cyan-50/30" : "text-gray-400 hover:text-gray-600 border-transparent"}`}
+      >
+        Login
+      </button>
+      <button 
+        onClick={() => { setActiveTab("register"); setSelectedRole("Parent / Guardian"); }}
+        className={`flex-1 py-4 text-center font-bold border-b-4 ${activeTab === "register" ? "text-[#164E63] border-[#0891B2] bg-cyan-50/30" : "text-gray-400 hover:text-gray-600 border-transparent"}`}
+      >
+        Register
+      </button>
+    </div>
 
-  <div className="mt-8 flex justify-end gap-3">
-  <button onClick={() => setIsLoginModalOpen(false)} className="px-5 py-2.5 rounded-none text-sm font-bold text-[#164E63]/70 hover:bg-slate-100 cursor-pointer">Cancel</button>
-  <button onClick={() => handleSimulatedLogin(selectedRole)} className="bg-[#059669] text-white px-6 py-2.5 rounded-none text-sm font-bold shadow-md hover:bg-[#059669] cursor-pointer">Enter Workspace</button>
-  </div>
+    {/* Content */}
+    <div className="p-6">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold text-[#164E63] mb-2">Select Mock Role</label>
+          <select 
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="w-full border-2 border-cyan-100 p-3 rounded-none text-[#164E63] font-semibold focus:border-[#0891B2] focus:outline-none"
+          >
+            <option value="Chief Pediatrician">Chief Pediatrician (Command Center)</option>
+            <option value="Hospital Executive">Hospital Executive (Dashboards)</option>
+            <option value="Lead Cardiologist">Lead Cardiologist (Specialist Workspace)</option>
+            <option value="PICU Triage Nurse">PICU Triage Nurse (Intake)</option>
+            <option value="Parent / Guardian">Parent / Guardian (Family Portal)</option>
+            <option value="System Administrator">System Administrator (Admin)</option>
+          </select>
+        </div>
+
+        {selectedRole === "Parent / Guardian" && (
+          <div className="mt-6 p-4 border border-blue-100 bg-blue-50/30 rounded-none space-y-4">
+            <h4 className="font-bold text-[#164E63] flex items-center gap-2"><UserPlus className="w-4 h-4"/> Pre-filled Patient Data</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Patient Name</label>
+                <input type="text" readOnly value="Ishaan Menon" className="w-full p-2 border border-gray-200 bg-gray-50 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">DOB</label>
+                <input type="date" readOnly value="2019-04-12" className="w-full p-2 border border-gray-200 bg-gray-50 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Guardian Name</label>
+                <input type="text" readOnly value="Sunita Menon" className="w-full p-2 border border-gray-200 bg-gray-50 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Gender</label>
+                <input type="text" readOnly value="Male" className="w-full p-2 border border-gray-200 bg-gray-50 text-sm" />
+              </div>
+            </div>
+            <p className="text-xs text-blue-600 mt-2">Data pre-filled for demonstration.</p>
+          </div>
+        )}
+
+        <div className="mt-8">
+          <button onClick={() => handleSimulatedLogin(selectedRole)} className="w-full bg-[#059669] text-white px-6 py-4 rounded-none text-lg font-bold shadow-md hover:bg-[#047857] cursor-pointer flex justify-center items-center gap-2">
+            {activeTab === "login" ? "Login to Workspace" : "Register & Enter"} <ArrowRight className="w-5 h-5"/>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   </div>,
   document.body

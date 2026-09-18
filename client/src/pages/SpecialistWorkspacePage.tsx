@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { usePediatric } from "../context/PediatricContext";
-import { CheckCircle, XCircle, Activity, Save, CheckSquare, Stethoscope, BriefcaseMedical, Video } from "lucide-react";
+import { CheckCircle, XCircle, Activity, Save, CheckSquare, Stethoscope, BriefcaseMedical, Video, Pill } from "lucide-react";
 import { TeleconsultModal } from "../components/TeleconsultModal";
 
+import { useAuth } from "../context/AuthContext";
+import { QuickChat } from "../components/QuickChat";
+
 export function SpecialistWorkspacePage() {
+ const { user } = useAuth();
  const { cases, specialists, acceptSpecialist, overrideSpecialist, updateCaseStage, addClinicalNote, closeCase } = usePediatric();
 
  // Find cases assigned to a mock specialist, or pending recommendation
@@ -128,6 +132,19 @@ export function SpecialistWorkspacePage() {
  <div className="lg:col-span-2 space-y-6">
  {selectedCase ? (
  <div className="space-y-6">
+ {/* Patient Details Header */}
+ <div className="bg-white rounded-none shadow-md border border-gray-100 p-6 flex flex-col md:flex-row justify-between">
+   <div>
+      <h2 className="text-2xl font-bold text-gray-800">{selectedCase.patientName}</h2>
+      <p className="text-gray-500">ID: {selectedCase.patientId} • Age: {selectedCase.ageText} • Ward: {selectedCase.ward}</p>
+      <p className="mt-2 text-sm text-gray-700"><strong>Chief Complaint:</strong> {selectedCase.chiefComplaint}</p>
+   </div>
+   <div className="text-left md:text-right mt-4 md:mt-0 bg-gray-50 p-3 rounded border border-gray-200">
+      <div className="text-xs uppercase text-gray-500 font-bold tracking-wider mb-1">Latest Vitals</div>
+      <div className="text-sm font-medium">HR: <span className="text-red-600">{selectedCase.vitals?.heartRate}</span> | SpO2: {selectedCase.vitals?.spO2}% | Temp: {selectedCase.vitals?.temperature}°C</div>
+   </div>
+ </div>
+
  {/* Consultation & Diagnosis */}
  <div className="bg-white rounded-none shadow-md border border-gray-100 p-6">
  <div className="flex items-center justify-between mb-4">
@@ -142,7 +159,11 @@ export function SpecialistWorkspacePage() {
  <Video className="w-4 h-4 mr-2" /> Launch Virtual Teleconsultation
  </button>
  </div>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+ <div>
+ <label className="block text-sm font-medium text-gray-700 mb-1">Consult Duration (mins)</label>
+ <input type="number" placeholder="e.g. 15" className="w-full border-gray-300 rounded-none p-2.5 focus:ring-2 focus:ring-indigo-500" />
+ </div>
  <div>
  <label className="block text-sm font-medium text-gray-700 mb-1">ICD-10/ICD-11 Code</label>
  <select 
@@ -171,6 +192,31 @@ export function SpecialistWorkspacePage() {
  <button onClick={handleDiagnosisSubmit} disabled={!icdCode || !consultOutcome} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-none flex items-center transition disabled:opacity-50">
  <Save className="w-4 h-4 mr-2" /> Save Diagnosis
  </button>
+ </div>
+
+ {/* Prescriptions & Next Steps */}
+ <div className="bg-white rounded-none shadow-md border border-gray-100 p-6">
+   <div className="flex items-center space-x-2 mb-4">
+     <Pill className="w-5 h-5 text-amber-600" />
+     <h2 className="text-xl font-bold text-gray-800">Prescribe & Schedule Next Steps</h2>
+   </div>
+   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+     <div>
+       <label className="block text-sm font-medium text-gray-700 mb-1">Add Prescription</label>
+       <textarea rows={2} placeholder="e.g. Amoxicillin 250mg, 1 tablet q8h for 7 days" className="w-full border-gray-300 rounded-none p-3 focus:ring-2 focus:ring-amber-500"></textarea>
+     </div>
+     <div>
+       <label className="block text-sm font-medium text-gray-700 mb-1">Schedule Follow-up Appointment</label>
+       <input type="date" className="w-full border-gray-300 rounded-none p-3 focus:ring-2 focus:ring-amber-500 mb-2" />
+       <select className="w-full border-gray-300 rounded-none p-3 focus:ring-2 focus:ring-amber-500">
+         <option>In-person Visit</option>
+         <option>Teleconsultation</option>
+       </select>
+     </div>
+   </div>
+   <button className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-none flex items-center transition">
+     <Save className="w-4 h-4 mr-2" /> Issue Prescription & Schedule
+   </button>
  </div>
 
  {/* Treatment Plan Builder */}
@@ -211,6 +257,16 @@ export function SpecialistWorkspacePage() {
  <Stethoscope className="w-16 h-16 text-gray-300 mb-4" />
  <p className="text-lg font-medium">Select a case from your queue to begin.</p>
  </div>
+ )}
+ {selectedCase && (
+  <div className="mt-8">
+    <QuickChat
+      patientId={selectedCase.patientId}
+      currentUserId={user?.id || "U-SPEC"}
+      currentUserName={user?.name || "Specialist"}
+      currentUserRole="Specialist"
+    />
+  </div>
  )}
  </div>
  </div>
