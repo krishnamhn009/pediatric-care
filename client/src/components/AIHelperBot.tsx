@@ -1,27 +1,53 @@
 import React, { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot, Loader2, Sparkles, X } from "lucide-react";
 import { usePediatric } from "../context/PediatricContext";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { ScrollArea } from "./ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "./ui/sheet";
+import { chatWithOpenRouter, buildParentSystemPrompt, buildClinicianSystemPrompt } from "@/lib/openRouter";
 
 export const AIHelperBot: React.FC = () => {
   const { getPatientById, getCaseByPatientId } = usePediatric();
+  const { user } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: "user" | "assistant", content: string }[]>([
-    { role: "assistant", content: "Hi there! I am the PCN AI Assistant. I can help answer questions about Ishaan's care plan, vitals, or reports. How can I help you today?" }
-  ]);
+  const [messages, setMessages] = useState<
+    { role: "user" | "assistant"; content: string }[]
+  >([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // We are using hardcoded patient ID as requested for the mock
   const activeChildId = "PT-1001";
   const patient = getPatientById(activeChildId);
   const activeCase = getCaseByPatientId(activeChildId);
 
+  const isClinician = user?.role !== "Parent";
+  const assistantName = isClinician ? "AI Clinical Co-Pilot" : "PCN AI Guide";
+  const welcomeMessage = isClinician
+    ? `Hello Dr. ${user?.name || "Clinician"}. I'm your AI Co-Pilot. I've analyzed patient ${patient?.fullName}'s latest reports and vitals. How can I assist with your diagnosis or care plan today?`
+    : `Hi there! I am the PCN AI Assistant. I can help answer questions about ${patient?.fullName}'s care plan, vitals, or reports. How can I help you today?`;
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{ role: "assistant", content: welcomeMessage }]);
+    }
+  }, [user, messages.length, welcomeMessage]);
+
   useEffect(() => {
     if (isOpen) {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Need a small timeout to let the sheet animation finish before scrolling
+      setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
     }
   }, [messages, isOpen]);
 
@@ -35,120 +61,122 @@ export const AIHelperBot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const systemPrompt = `You are a helpful AI medical assistant for the Pediatric Care Network Parent Portal. 
-      You are speaking to the guardian of ${patient?.fullName} (Age: ${patient?.ageYears} yrs, Gender: ${patient?.gender}, Blood Group: ${patient?.bloodGroup}).
-      Patient is currently in the ${activeCase?.ward} ward.
-      Chief Complaint: ${activeCase?.chiefComplaint}.
-      Primary Condition: ${activeCase?.primaryCondition}.
-      Latest Vitals: HR ${activeCase?.vitals?.heartRate}, SpO2 ${activeCase?.vitals?.spO2}%, Temp ${activeCase?.vitals?.temperature}°C.
-      Please answer the guardian's questions in a supportive, plain-language manner. Do not provide definitive medical diagnoses, but help them understand the reports, vitals, and treatment plan context. Keep answers relatively concise.`;
+      const systemPrompt = isClinician
+        ? buildClinicianSystemPrompt({ patient, activeCase, specialist: null, userName: user?.name })
+        : buildParentSystemPrompt({ patient, activeCase, specialist: null, ageText: patient ? `${patient.ageYears} yrs ${patient.ageMonths} mo` : "" });
 
-      const apiMessages = [
+      const apiMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
         { role: "system", content: systemPrompt },
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: "user", content: userMsg }
+        ...messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
+        { role: "user", content: userMsg },
       ];
 
-      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "google/gemini-1.5-flash", // Using a fast, low-cost model
-          messages: apiMessages,
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.choices && data.choices.length > 0) {
-        setMessages(prev => [...prev, { role: "assistant", content: data.choices[0].message.content }]);
-      } else {
-        setMessages(prev => [...prev, { role: "assistant", content: "I'm sorry, I'm having trouble connecting to my knowledge base right now." }]);
-      }
-    } catch (error) {
+      const reply = await chatWithOpenRouter(apiMessages);
+      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch (error: any) {
       console.error(error);
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, a network error occurred." }]);
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: `⚠️ ${error.message || "Network error. Check VITE_OPENROUTER_API_KEY and try again."}` },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <>
-      {/* Floating Button */}
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       {!isOpen && (
-        <button
+        <Button
+          size="lg"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 transition-transform hover:scale-110 z-50 cursor-pointer border-2 border-white"
+          className="fixed bottom-6 right-6 h-14 px-6 rounded-full shadow-[0_12px_32px_rgba(255,255,255,0.15)] flex items-center gap-3 hover:scale-105 transition-all z-50 bg-white text-black border border-white hover:bg-white/90"
         >
-          <MessageCircle className="w-6 h-6" />
-        </button>
+          <Sparkles className="w-5 h-5 animate-pulse" />
+          <span className="font-bold tracking-wide text-base">
+            {assistantName}
+          </span>
+        </Button>
       )}
 
-      {/* Chat Window */}
-      {isOpen && (
-        <div className="fixed bottom-6 right-6 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-indigo-100 z-50 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5">
-          {/* Header */}
-          <div className="bg-indigo-600 text-white p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-md p-0 flex flex-col h-full border-l border-white/10 bg-card shadow-2xl"
+      >
+        <SheetHeader className="p-5 border-b border-white/10 bg-white/[0.04] text-left flex flex-row items-center space-y-0 relative">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-white text-black grid place-items-center">
               <Bot className="w-5 h-5" />
-              <div>
-                <h3 className="font-bold text-sm">PCN AI Guide</h3>
-                <p className="text-[10px] text-indigo-200">Analyzing clinical data...</p>
-              </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-indigo-200 hover:text-white transition-colors cursor-pointer">
-              <X className="w-5 h-5" />
-            </button>
+            <div>
+              <SheetTitle className="text-lg leading-tight">
+                {assistantName}
+              </SheetTitle>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                <Sparkles className="w-3 h-3" /> Powered by OpenRouter · {patient?.fullName} context injected
+              </p>
+            </div>
           </div>
+        </SheetHeader>
 
-          {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto bg-slate-50 space-y-4 max-h-96 min-h-[300px]">
+        <ScrollArea className="flex-1 p-5 bg-background">
+          <div className="space-y-3 pb-4">
             {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === "user"
-                  ? "bg-indigo-600 text-white rounded-br-none"
-                  : "bg-white border border-gray-200 text-slate-700 rounded-bl-none shadow-sm"
-                  }`}>
+              <div
+                key={i}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[82%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                    msg.role === "user"
+                      ? "bg-white text-black rounded-br-sm shadow-md"
+                      : "bg-white/[0.06] border border-white/10 text-foreground rounded-bl-sm"
+                  }`}
+                >
                   {msg.content}
                 </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 p-3 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-2 text-indigo-600">
-                  <Loader2 className="w-4 h-4 animate-spin" /> <span className="text-xs">Reading reports...</span>
+                <div className="bg-white/[0.06] border border-white/10 px-3 py-2 rounded-2xl rounded-bl-sm flex items-center gap-2 text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Thinking with {patient?.fullName}'s data…
                 </div>
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
+        </ScrollArea>
 
-          {/* Input Area */}
-          <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 flex gap-2">
-            <input
-              type="text"
+        <div className="p-4 bg-card border-t border-white/10">
+          <form onSubmit={handleSend} className="flex gap-2">
+            <Input
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about reports, vitals..."
-              className="flex-1 px-4 py-2 bg-slate-100 border-transparent rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+              onChange={e => setInput(e.target.value)}
+              placeholder={
+                isClinician
+                  ? "Ask for differential diagnosis..."
+                  : "Ask about reports..."
+              }
+              className="flex-1 rounded-full border-white/10 bg-white/[0.04] focus-visible:ring-white/20"
               disabled={isLoading}
             />
-            <button
+            <Button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center disabled:opacity-50 transition-colors"
+              className="rounded-full w-10 h-10 p-0 shrink-0 bg-white text-black hover:bg-white/90 shadow-md"
             >
               <Send className="w-4 h-4" />
-            </button>
+            </Button>
           </form>
+          <div className="text-center mt-2">
+            <span className="text-[10px] text-muted-foreground">
+              Injected: {patient?.fullName} · {patient?.bloodGroup} · Stage {activeCase?.currentStage} · {activeCase?.ward} · AI via OpenRouter
+            </span>
+          </div>
         </div>
-      )}
-    </>
+      </SheetContent>
+    </Sheet>
   );
 };

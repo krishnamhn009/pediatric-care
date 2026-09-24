@@ -52,11 +52,12 @@ Confidential — Internal Use Only
 
 Page 1 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
 Table of Contents
+
 1. Document Control................................................................................................................................................... 3
 2. Executive Summary................................................................................................................................................. 3
 3. Business Context & Problem Statement................................................................................................................. 4
@@ -74,20 +75,20 @@ Table of Contents
 15. Phased Delivery Plan........................................................................................................................................... 20
 16. Business Acceptance Criteria — Phase 1.............................................................................................................20
 17. Open Questions................................................................................................................................................... 20
-Appendix A — Requirements Traceability Matrix.....................................................................................................21
-Appendix B — Glossary.............................................................................................................................................22
+    Appendix A — Requirements Traceability Matrix.....................................................................................................21
+    Appendix B — Glossary.............................................................................................................................................22
 
 Confidential — Internal Use Only
 
 Page 2 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
 1. Document Control
-1.1 Revision History
-Ver
+   1.1 Revision History
+   Ver
 
 Date
 
@@ -164,29 +165,29 @@ Delivery / Engineering Team
 Build input and estimation
 
 2. Executive Summary
-The Pediatric Care Network is a cloud-based clinical platform that ensures every child entering the hospital is
-routed to the most appropriate pediatric specialist at the earliest possible point in their care journey, with
-qualified clinician oversight at every step.
-The platform is explicitly not a diagnostic engine and does not replace clinical judgement. It is a decision-support
-and care-coordination system with six core capabilities:
+   The Pediatric Care Network is a cloud-based clinical platform that ensures every child entering the hospital is
+   routed to the most appropriate pediatric specialist at the earliest possible point in their care journey, with
+   qualified clinician oversight at every step.
+   The platform is explicitly not a diagnostic engine and does not replace clinical judgement. It is a decision-support
+   and care-coordination system with six core capabilities:
 1. Capture structured symptom, vitals and clinical assessment data at the point of intake.
-2. Recommend the most suitable pediatric specialist based on condition, urgency, specialist experience and
-historical outcome data — for a clinician to confirm, override or escalate.
-3. Maintain a single longitudinal digital record per child covering clinical notes, laboratory results, imaging,
-media, consents, prescriptions and discharge summaries.
-Confidential — Internal Use Only
+1. Recommend the most suitable pediatric specialist based on condition, urgency, specialist experience and
+   historical outcome data — for a clinician to confirm, override or escalate.
+1. Maintain a single longitudinal digital record per child covering clinical notes, laboratory results, imaging,
+   media, consents, prescriptions and discharge summaries.
+   Confidential — Internal Use Only
 
 Page 3 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
 4. Continuously evaluate every open case against five clinical checkpoints and escalate when a case stalls.
 5. Give hospital leadership real-time operational visibility across departments and, in later phases, across the
-facility network.
+   facility network.
 6. Convert closed cases into a de-identified, searchable knowledge repository that improves future referral
-accuracy and supports medical education.
+   accuracy and supports medical education.
 
 Primary business outcome: reduce time-to-right-specialist, reduce complications and readmissions arising from delayed
 or misrouted referrals, and eliminate cases that fall through the cracks between departments.
@@ -203,10 +204,10 @@ separated
 properly.
 
 3. Business Context & Problem Statement
-3.1 Current State
-Several hundred children present daily across OPD, Emergency, inpatient wards, PICU and NICU. Presentations
-range from routine childhood illness to rare conditions requiring highly sub-specialised intervention.
-The bottleneck identified by the business sponsor is specific and deliberate:
+   3.1 Current State
+   Several hundred children present daily across OPD, Emergency, inpatient wards, PICU and NICU. Presentations
+   range from routine childhood illness to rare conditions requiring highly sub-specialised intervention.
+   The bottleneck identified by the business sponsor is specific and deliberate:
 
 Problem statement: The difficulty is not finding a pediatrician. The difficulty is finding the right pediatric expert at the
 right time.
@@ -273,7 +274,7 @@ Confidential — Internal Use Only
 
 Page 4 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -349,8 +350,8 @@ Closed cases feed the knowledge base and the recommendation
 weighting
 
 4. Business Objectives & Success Metrics
-Each objective is paired with a measurable KPI. Baseline values must be established during discovery; without
-them, objectives BO2, BO3 and BO5 cannot be verified at acceptance. This is raised as open question OQ-01.
+   Each objective is paired with a measurable KPI. Baseline values must be established during discovery; without
+   them, objectives BO2, BO3 and BO5 cannot be verified at acceptance. This is raised as open question OQ-01.
 
 ID
 
@@ -418,7 +419,7 @@ Confidential — Internal Use Only
 
 Page 5 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -478,18 +479,18 @@ TBD
 > 4.5 / 5
 
 5. Scope
-5.1 In Scope — Phase 1 (MVP)
-• Child and guardian registration, identity resolution and consent capture
-• Symptom intake and structured clinical assessment with age-aware vitals
-• Specialist recommendation engine with mandatory clinician confirmation
-• Referral routing, acceptance and in-person consultation scheduling
-• Master Health Record — notes, labs, imaging, prescriptions, consents, discharge summaries
-• Diagnosis coding and personalised treatment plan capture
-• Follow-up scheduling, monitoring and clinician-signed case closure
-• Clinical Intelligence checkpoint engine and escalation queues
-• Executive Command Center dashboards for a single facility
-• Role-based access control, break-glass access and full audit trail
-• Master data administration — specialties, departments, specialists, protocols
+   5.1 In Scope — Phase 1 (MVP)
+   • Child and guardian registration, identity resolution and consent capture
+   • Symptom intake and structured clinical assessment with age-aware vitals
+   • Specialist recommendation engine with mandatory clinician confirmation
+   • Referral routing, acceptance and in-person consultation scheduling
+   • Master Health Record — notes, labs, imaging, prescriptions, consents, discharge summaries
+   • Diagnosis coding and personalised treatment plan capture
+   • Follow-up scheduling, monitoring and clinician-signed case closure
+   • Clinical Intelligence checkpoint engine and escalation queues
+   • Executive Command Center dashboards for a single facility
+   • Role-based access control, break-glass access and full audit trail
+   • Master data administration — specialties, departments, specialists, protocols
 
 5.2 In Scope — Phase 2
 • Parent / guardian portal (web and mobile)
@@ -510,7 +511,7 @@ Confidential — Internal Use Only
 
 Page 6 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -525,8 +526,8 @@ The following are explicitly excluded from all phases of this initiative.
 • Direct-to-consumer patient acquisition or marketplace functionality
 
 6. Stakeholders & User Personas
-6.1 Stakeholder Register
-Stakeholder
+   6.1 Stakeholder Register
+   Stakeholder
 
 Interest
 
@@ -628,7 +629,7 @@ Confidential — Internal Use Only
 
 Page 7 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -660,8 +661,8 @@ Quality Officer
 every decision.”
 
 7. Business Process — The Child Journey
-The care journey comprises ten defined stages. Every open case sits in exactly one stage at any point in time, and
-every stage transition is timestamped and attributed to a named user.
+   The care journey comprises ten defined stages. Every open case sits in exactly one stage at any point in time, and
+   every stage transition is timestamped and attributed to a named user.
 
 #
 
@@ -793,11 +794,11 @@ Escalation overlay: any case exceeding the SLA for its current stage is automati
 Attention) and surfaced in the Alerts Center regardless of which stage it occupies.
 
 8. Functional Requirements
-Confidential — Internal Use Only
+   Confidential — Internal Use Only
 
 Page 8 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -921,7 +922,7 @@ Confidential — Internal Use Only
 
 Page 9 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1050,7 +1051,7 @@ Confidential — Internal Use Only
 
 Page 10 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1201,7 +1202,7 @@ Confidential — Internal Use Only
 
 Page 11 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1322,11 +1323,7 @@ Support case re-opening on relapse, linked to the original case.
 M
 
 8.9 Clinical Intelligence & Escalation Engine
-The engine continuously evaluates five checkpoints for every open case:
-7. Has the child seen the correct specialist?
-8. Has treatment started?
-9. Is follow-up completed?
-10.
+The engine continuously evaluates five checkpoints for every open case: 7. Has the child seen the correct specialist? 8. Has treatment started? 9. Is follow-up completed? 10.
 
 Are there any complications?
 
@@ -1338,7 +1335,7 @@ Confidential — Internal Use Only
 
 Page 12 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1475,7 +1472,7 @@ Confidential — Internal Use Only
 
 Page 13 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1630,7 +1627,7 @@ Confidential — Internal Use Only
 
 Page 14 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1728,17 +1725,17 @@ requires no code deployment.
 M
 
 9. Data Requirements
-9.1 Core Business Entities
-Child · Guardian · Consent · Case · Encounter · Assessment · SymptomRecord · Vitals · Recommendation · Referral ·
-Consultation · Diagnosis · TreatmentPlan · Intervention · Complication · FollowUp · Document · MediaAsset ·
-Specialist · Specialty · Department · Facility · Protocol · Checkpoint · Alert · Escalation · KnowledgeCase ·
-AuditEvent
+   9.1 Core Business Entities
+   Child · Guardian · Consent · Case · Encounter · Assessment · SymptomRecord · Vitals · Recommendation · Referral ·
+   Consultation · Diagnosis · TreatmentPlan · Intervention · Complication · FollowUp · Document · MediaAsset ·
+   Specialist · Specialty · Department · Facility · Protocol · Checkpoint · Alert · Escalation · KnowledgeCase ·
+   AuditEvent
 
 Confidential — Internal Use Only
 
 Page 15 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1787,7 +1784,7 @@ redacted.
 • Publication is gated on both valid consent and clinical governance review.
 
 10. Non-Functional Requirements
-ID
+    ID
 
 Category
 
@@ -1832,7 +1829,7 @@ Confidential — Internal Use Only
 
 Page 16 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -1909,7 +1906,7 @@ Any change to recommendation logic requires versioning, offline evaluation, clin
 sign-off, post-deployment accuracy monitoring and a tested rollback path.
 
 11. Integration Requirements
-ID
+    ID
 
 System
 
@@ -2003,12 +2000,12 @@ Confidential — Internal Use Only
 
 Page 17 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
 12. Regulatory & Compliance Requirements
-ID
+    ID
 
 Requirement
 
@@ -2045,8 +2042,8 @@ REG-07
 Maintain a data-processing register, a Data Protection Impact Assessment and a documented breachnotification procedure.
 
 13. Assumptions, Constraints & Dependencies
-13.1 Assumptions
-ID
+    13.1 Assumptions
+    ID
 
 Assumption
 
@@ -2109,7 +2106,7 @@ Confidential — Internal Use Only
 
 Page 18 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -2158,7 +2155,7 @@ Medical Administration /
 HR
 
 14. Risk Register
-ID
+    ID
 
 Risk
 
@@ -2288,12 +2285,12 @@ Confidential — Internal Use Only
 
 Page 19 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
 15. Phased Delivery Plan
-Phase
+    Phase
 
 Focus
 
@@ -2330,13 +2327,13 @@ analytics, medical education module
 Durations are indicative and subject to confirmation against a detailed delivery estimate following discovery.
 
 16. Business Acceptance Criteria — Phase 1
-Phase 1 is accepted when all of the following are demonstrably true in the pilot department, on real clinical cases.
-12.
+    Phase 1 is accepted when all of the following are demonstrably true in the pilot department, on real clinical cases.
+17.
 
 A child can be taken end to end from registration through case closure entirely within the platform.
 
 13. Every referral carries either a system recommendation accepted by a clinician or a documented override
-reason — 100% coverage, no exceptions.
+    reason — 100% coverage, no exceptions.
 14.
 
 Average referral time is measured and demonstrably tracking toward the 30-minute target.
@@ -2350,7 +2347,7 @@ No case is closed with incomplete mandatory checkpoints without a documented, au
 The Master Health Record shows a complete, correctly ordered artefact set for at least 95% of pilot cases.
 
 17. The Command Center reflects live pilot-department data, and every executive alert raised has a recorded
-acknowledgement and action.
+    acknowledgement and action.
 18.
 
 The audit trail can reconstruct the full decision history of any pilot case on demand for the quality team.
@@ -2360,11 +2357,11 @@ The audit trail can reconstruct the full decision history of any pilot case on d
 Security testing is passed with all high and critical findings remediated.
 
 20. The Data Protection Officer and clinical governance have signed off on the consent model and the
-recommendation ruleset.
+    recommendation ruleset.
 
-17. Open Questions
-The following must be resolved before the requirements baseline can be finalised. OQ-01 and OQ-03 have the
-greatest influence on the shape of the build.
+21. Open Questions
+    The following must be resolved before the requirements baseline can be finalised. OQ-01 and OQ-03 have the
+    greatest influence on the shape of the build.
 
 ID
 
@@ -2397,7 +2394,7 @@ Confidential — Internal Use Only
 
 Page 20 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -2551,7 +2548,7 @@ Confidential — Internal Use Only
 
 Page 21 of 22
 
-Business Requirements Document
+Business Requirements Document
 
 Pediatric Care Network Platform | v0.1 Draft
 
@@ -2617,5 +2614,3 @@ Service Level Agreement — the time within which a stage or escalation must be 
 Confidential — Internal Use Only
 
 Page 22 of 22
-
-

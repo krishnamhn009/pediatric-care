@@ -1,21 +1,50 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  Users,
-  Clock,
-  AlertTriangle,
-  CheckCircle2,
+  CreditCard,
+  DollarSign,
   Activity,
-  BedDouble,
-  Siren,
-  Stethoscope,
   ChevronRight,
-  Bell,
+  ArrowRight,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  Info,
   TrendingUp,
   TrendingDown,
-  ArrowRight
+  Users,
+  Clock,
+  HeartPulse,
+  Shield,
+  Bell,
+  BedDouble,
 } from "lucide-react";
 import { usePediatric, ExecutiveAlert } from "../context/PediatricContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Area, AreaChart } from "recharts";
 
 interface WardData {
   id: string;
@@ -27,6 +56,7 @@ interface WardData {
   status: "Low" | "Moderate" | "High" | "Critical";
   note: string;
   color: string;
+  trend: "up" | "down" | "stable";
   activePatients: Array<{
     name: string;
     id: string;
@@ -44,12 +74,28 @@ const INITIAL_WARDS: WardData[] = [
     capacity: 25,
     occupiedBeds: 23,
     status: "Critical",
-    note: "2 beds available · Cardiac & Neuro intensive monitoring",
-    color: "#0891B2", // Cyan 600
+    note: "2 beds available \u00b7 Cardiac & Neuro intensive monitoring",
+    color: "#dc2626",
+    trend: "up",
     activePatients: [
-      { name: "Ishaan Menon", id: "PT-1001", acuity: "Critical · Cardiac VSD", wait: "Stage 9" },
-      { name: "Anaya Rao", id: "PT-1002", acuity: "Urgent · Post-Op Fever", wait: "Stage 8" },
-      { name: "Rehan Sharma", id: "PT-1003", acuity: "Critical · Status Epilepticus", wait: "Stage 5" },
+      {
+        name: "Ishaan Menon",
+        id: "PT-1001",
+        acuity: "Critical \u00b7 Cardiac VSD",
+        wait: "Stage 9",
+      },
+      {
+        name: "Anaya Rao",
+        id: "PT-1002",
+        acuity: "Urgent \u00b7 Post-Op Fever",
+        wait: "Stage 8",
+      },
+      {
+        name: "Rehan Sharma",
+        id: "PT-1003",
+        acuity: "Critical \u00b7 Status Epilepticus",
+        wait: "Stage 5",
+      },
     ],
   },
   {
@@ -61,10 +107,21 @@ const INITIAL_WARDS: WardData[] = [
     occupiedBeds: 14,
     status: "High",
     note: "3 step-down candidates identified for ward transfer",
-    color: "#22D3EE", // Cyan 400
+    color: "#f59e0b",
+    trend: "stable",
     activePatients: [
-      { name: "Baby Aarohi M.", id: "PT-1008", acuity: "High · Preterm 28wk", wait: "Stage 7" },
-      { name: "Baby Dev N.", id: "PT-1009", acuity: "Moderate · Respiratory", wait: "Stage 8" },
+      {
+        name: "Baby Aarohi M.",
+        id: "PT-1008",
+        acuity: "High \u00b7 Preterm 28wk",
+        wait: "Stage 7",
+      },
+      {
+        name: "Baby Dev N.",
+        id: "PT-1009",
+        acuity: "Moderate \u00b7 Respiratory",
+        wait: "Stage 8",
+      },
     ],
   },
   {
@@ -75,11 +132,22 @@ const INITIAL_WARDS: WardData[] = [
     capacity: 27,
     occupiedBeds: 21,
     status: "High",
-    note: "2 red-tag patients · Active specialist dispatch",
-    color: "#059669", // Emerald 600
+    note: "2 red-tag patients \u00b7 Active specialist dispatch",
+    color: "#38bdf8",
+    trend: "up",
     activePatients: [
-      { name: "Niya Patel", id: "PT-1011", acuity: "Red Tag · Respiratory", wait: "12m" },
-      { name: "Arjun V.", id: "PT-1012", acuity: "Amber Tag · Trauma", wait: "18m" },
+      {
+        name: "Niya Patel",
+        id: "PT-1011",
+        acuity: "Red Tag \u00b7 Respiratory",
+        wait: "12m",
+      },
+      {
+        name: "Arjun V.",
+        id: "PT-1012",
+        acuity: "Amber Tag \u00b7 Trauma",
+        wait: "18m",
+      },
     ],
   },
   {
@@ -90,11 +158,22 @@ const INITIAL_WARDS: WardData[] = [
     capacity: 62,
     occupiedBeds: 38,
     status: "Moderate",
-    note: "Steady flow · 4 specialty consult rooms active",
-    color: "#0284C7", // Light Blue
+    note: "Steady flow \u00b7 4 specialty consult rooms active",
+    color: "#22c55e",
+    trend: "down",
     activePatients: [
-      { name: "Kabir Joshi", id: "PT-1005", acuity: "Moderate · VSD Consult", wait: "Stage 4" },
-      { name: "Tara S.", id: "PT-1014", acuity: "Routine · Follow-up", wait: "15m" },
+      {
+        name: "Kabir Joshi",
+        id: "PT-1005",
+        acuity: "Moderate \u00b7 VSD Consult",
+        wait: "Stage 4",
+      },
+      {
+        name: "Tara S.",
+        id: "PT-1014",
+        acuity: "Routine \u00b7 Follow-up",
+        wait: "15m",
+      },
     ],
   },
   {
@@ -105,68 +184,147 @@ const INITIAL_WARDS: WardData[] = [
     capacity: 118,
     occupiedBeds: 56,
     status: "Low",
-    note: "Capacity available · 8 discharges projected today",
-    color: "#14B8A6", // Teal 500
+    note: "Capacity available \u00b7 8 discharges projected today",
+    color: "#22c55e",
+    trend: "down",
     activePatients: [
-      { name: "Myra Joseph", id: "PT-1004", acuity: "Moderate · Bronchiolitis", wait: "Stage 9" },
-      { name: "Vihaan S.", id: "PT-1016", acuity: "Low · Observation", wait: "Stage 8" },
-    ],
-  },
-  {
-    id: "imaging",
-    name: "Pediatric Imaging & PACS",
-    short: "PACS",
-    occupancy: 67,
-    capacity: 14,
-    occupiedBeds: 9,
-    status: "Moderate",
-    note: "MRI queue at 2 · Echocardiography on schedule",
-    color: "#6366F1", // Indigo 500
-    activePatients: [
-      { name: "Rudra K.", id: "PT-1018", acuity: "Echocardiogram", wait: "10m" },
-      { name: "Nia A.", id: "PT-1019", acuity: "Chest X-Ray", wait: "05m" },
+      {
+        name: "Myra Joseph",
+        id: "PT-1004",
+        acuity: "Moderate \u00b7 Bronchiolitis",
+        wait: "Stage 9",
+      },
+      {
+        name: "Vihaan S.",
+        id: "PT-1016",
+        acuity: "Low \u00b7 Observation",
+        wait: "Stage 8",
+      },
     ],
   },
 ];
 
-const Sparkline = ({ data, color }: { data: number[], color: string }) => {
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const width = 100;
-  const height = 30;
-  const step = width / (data.length - 1);
-  
-  const points = data.map((val, i) => {
-    const x = i * step;
-    const y = height - ((val - min) / range) * height;
-    return `${x},${y}`;
-  }).join(" ");
+const MiniSparkline = ({
+  data,
+  positive,
+}: {
+  data: number[];
+  color: string;
+  positive: boolean;
+}) => {
+  const chartData = data.map((value, index) => ({ value, index }));
+  const strokeColor = positive ? "oklch(0.985 0 0)" : "oklch(0.708 0 0)";
+  const chartConfig = {
+    value: {
+      label: "Value",
+      color: strokeColor,
+    },
+  };
 
   return (
-    <svg width="100%" height="100%" viewBox={`0 -5 ${width} ${height + 10}`} preserveAspectRatio="none">
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={points}
-        className="drop-shadow-sm"
-      />
-    </svg>
+    <ChartContainer config={chartConfig} className="h-12 w-full">
+      <AreaChart
+        data={chartData}
+        margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+      >
+        <defs>
+          <linearGradient
+            id={`gradient-${positive ? "neutral" : "muted"}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+            <stop offset="0%" stopColor={strokeColor} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke={strokeColor}
+          strokeWidth={1.5}
+          fill={`url(#gradient-${positive ? "neutral" : "muted"})`}
+          dot={false}
+        />
+        <ChartTooltip
+          content={<ChartTooltipContent hideLabel indicator="dot" />}
+        />
+      </AreaChart>
+    </ChartContainer>
   );
 };
 
+const StatusBadge = ({ status }: { status: string }) => {
+  const config: Record<string, { bg: string; text: string; border: string }> = {
+    Critical: {
+      bg: "bg-muted",
+      text: "text-foreground",
+      border: "border-border",
+    },
+    High: {
+      bg: "bg-muted",
+      text: "text-foreground",
+      border: "border-border",
+    },
+    Moderate: {
+      bg: "bg-muted",
+      text: "text-muted-foreground",
+      border: "border-border",
+    },
+    Low: {
+      bg: "bg-muted",
+      text: "text-muted-foreground",
+      border: "border-border",
+    },
+  };
+  const c = config[status] || {
+    bg: "bg-muted",
+    text: "text-muted-foreground",
+    border: "border-border",
+  };
+
+  return (
+    <Badge
+      variant="outline"
+      className={`${c.bg} ${c.text} ${c.border} text-[10px] font-semibold`}
+    >
+      {status}
+    </Badge>
+  );
+};
+
+const TrendIndicator = ({ trend }: { trend: "up" | "down" | "stable" }) => {
+  if (trend === "up")
+    return <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />;
+  if (trend === "down")
+    return <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />;
+  return <div className="h-3.5 w-3.5 rounded-full bg-muted-foreground/30" />;
+};
+
+const AlertIcon = ({ severity }: { severity: string }) => {
+  switch (severity) {
+    case "critical":
+      return <AlertTriangle className="h-4 w-4 text-foreground" />;
+    case "amber":
+      return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
+    default:
+      return <Info className="h-4 w-4 text-muted-foreground" />;
+  }
+};
+
 export const ExecutiveDashboard: React.FC = () => {
-  const { cases, alerts, acknowledgeAlert } = usePediatric();
+  const { cases, alerts, acknowledgeAlert, payments } = usePediatric();
   const [wards] = useState<WardData[]>(INITIAL_WARDS);
   const [selectedWardId, setSelectedWardId] = useState<string>("picu");
-  const [acknowledgeModalAlert, setAcknowledgeModalAlert] = useState<ExecutiveAlert | null>(null);
+  const [acknowledgeModalAlert, setAcknowledgeModalAlert] =
+    useState<ExecutiveAlert | null>(null);
   const [actionInput, setActionInput] = useState("");
 
   const activeCasesCount = cases.filter(c => c.currentStage < 10).length;
-  const criticalCasesCount = cases.filter(c => c.urgency === "Critical" && c.currentStage < 10).length;
+  const criticalCasesCount = cases.filter(
+    c => c.urgency === "Critical" && c.currentStage < 10
+  ).length;
   const unacknowledgedAlerts = alerts.filter(a => !a.acknowledged);
   const selectedWard = wards.find(w => w.id === selectedWardId) || wards[0];
 
@@ -184,7 +342,8 @@ export const ExecutiveDashboard: React.FC = () => {
       subtext: "Children under care",
       variance: "+8.6%",
       positive: true,
-      chartData: [10, 11, 14, 13, 15, 15, activeCasesCount + 14]
+      chartData: [10, 11, 14, 13, 15, 15, activeCasesCount + 14],
+      icon: Users,
     },
     {
       label: "Avg Match Time",
@@ -192,7 +351,8 @@ export const ExecutiveDashboard: React.FC = () => {
       subtext: "SLA target < 30m",
       variance: "-18%",
       positive: true,
-      chartData: [24, 22, 23, 19, 18, 17, 16.4]
+      chartData: [24, 22, 23, 19, 18, 17, 16.4],
+      icon: Clock,
     },
     {
       label: "Critical Cases",
@@ -200,7 +360,8 @@ export const ExecutiveDashboard: React.FC = () => {
       subtext: "PICU / ER priority",
       variance: "High",
       positive: false,
-      chartData: [4, 5, 3, 2, 4, 3, criticalCasesCount + 2]
+      chartData: [4, 5, 3, 2, 4, 3, criticalCasesCount + 2],
+      icon: HeartPulse,
     },
     {
       label: "Continuity Rate",
@@ -208,15 +369,17 @@ export const ExecutiveDashboard: React.FC = () => {
       subtext: "10-Stage Compliance",
       variance: "+1.2%",
       positive: true,
-      chartData: [89, 90, 92, 91, 93, 94, 94.2]
+      chartData: [89, 90, 92, 91, 93, 94, 94.2],
+      icon: Shield,
     },
     {
       label: "Open Alerts",
       value: unacknowledgedAlerts.length,
       subtext: "Action required",
-      variance: "Action",
+      variance: unacknowledgedAlerts.length === 0 ? "Clear" : "Action",
       positive: unacknowledgedAlerts.length === 0,
-      chartData: [6, 4, 5, 3, 2, 1, unacknowledgedAlerts.length]
+      chartData: [6, 4, 5, 3, 2, 1, unacknowledgedAlerts.length],
+      icon: Bell,
     },
     {
       label: "Specialist On-call",
@@ -224,375 +387,483 @@ export const ExecutiveDashboard: React.FC = () => {
       subtext: "Coverage Active",
       variance: "6/6",
       positive: true,
-      chartData: [85, 90, 100, 100, 100, 100, 100]
-    }
+      chartData: [85, 90, 100, 100, 100, 100, 100],
+      icon: Activity,
+    },
+    {
+      label: "Today's Revenue",
+      value:
+        "₹" +
+        (
+          payments.reduce(
+            (acc, p) =>
+              acc +
+              (p.currency === "INR" && p.status === "Completed" ? p.amount : 0),
+            0
+          ) / 1000
+        ).toFixed(1) +
+        "k",
+      subtext: "Online Payments",
+      variance: "+12%",
+      positive: true,
+      chartData: [40, 45, 55, 65, 60, 75, 80],
+      icon: DollarSign,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-[#ECFEFF] font-sans p-6 lg:p-12 text-[#164E63] dashboard-page-transition selection:bg-cyan-200 selection:text-cyan-900">
-      <div className="mx-auto max-w-7xl space-y-12">
-        
-        {/* Minimal Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-cyan-200" style={{ animationDelay: "50ms" }}>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#0891B2]">
-              <Activity className="h-4 w-4" /> Command Center
-            </div>
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl md:text-5xl font-light tracking-tight text-[#164E63]">
-                Executive Dashboard
-              </h1>
-              <select className="ml-4 mt-2 rounded-none border border-cyan-200 bg-white px-3 py-1.5 text-sm font-bold text-[#164E63] focus:border-blue-600 focus:outline-none">
-                <option value="all">Consolidated Network View (All Facilities)</option>
-                <option value="main">Main Hospital</option>
-                <option value="north">North Clinic</option>
-                <option value="south">South Campus</option>
-              </select>
-            </div>
+    <div className="space-y-8">
+      {/* Header — Solaris */}
+      <motion.header
+        initial={{ opacity: 0, y: 12, filter: "blur(6px)" as any }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" as any }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as any }}
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.06]"
+      >
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <Activity className="h-4 w-4" /> Command Center
           </div>
-          <Link
-            to="/intake"
-            className="group inline-flex h-12 items-center justify-center gap-2 bg-[#059669] px-6 text-sm font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-lg focus:ring-4 focus:ring-emerald-600/30 rounded-none"
-          >
-            New Patient Intake
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </header>
-
-        {/* Minimal KPIs Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-          {kpis.map((kpi, idx) => (
-            <div 
-              key={idx} 
-              className="group flex flex-col justify-between bg-white p-6 transition-all hover:shadow-md cursor-pointer border border-transparent hover:border-cyan-100"
-              style={{ animationDelay: `${(idx + 2) * 50}ms` }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-[#0891B2]/70">
-                  {kpi.label}
-                </span>
-              </div>
-              <div>
-                <div className="text-4xl font-light tracking-tighter text-[#164E63]">
-                  {kpi.value}
-                </div>
-                <div className="h-10 mt-3 w-full">
-                  <Sparkline data={kpi.chartData} color={kpi.positive ? "#059669" : "#E11D48"} />
-                </div>
-                <div className="mt-4 flex items-center justify-between border-t border-cyan-50 pt-3">
-                  <span className="text-xs text-[#164E63]/60">{kpi.subtext}</span>
-                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
-                    kpi.positive ? 'text-[#059669]' : 'text-rose-600'
-                  }`}>
-                    {kpi.variance}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Executive Dashboard
+            </h1>
+            <Select defaultValue="all">
+              <SelectTrigger className="w-64 bg-white/[0.04] border-white/10 rounded-full">
+                <SelectValue placeholder="Select Facility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Consolidated Network View</SelectItem>
+                <SelectItem value="main">Main Hospital</SelectItem>
+                <SelectItem value="north">North Clinic</SelectItem>
+                <SelectItem value="south">South Campus</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+        <Button
+          render={<Link to="/intake" className="gap-2" />}
+          size="lg"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          New Patient Intake
+          <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </motion.header>
 
-        {/* Live Hospital Ward Map & Acuity */}
-        <div className="grid lg:grid-cols-12 gap-8 dashboard-page-transition" style={{ animationDelay: "450ms" }}>
-          
-          {/* Ward List */}
-          <section className="lg:col-span-5 space-y-4">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#059669] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#059669]"></span>
-              </span>
-              <h2 className="text-lg font-medium tracking-wide uppercase text-[#164E63]">
-                Live Ward Capacity
-              </h2>
-            </div>
+      {/* KPI Cards — stagger */}
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.06 } },
+        }}
+        className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"
+      >
+        {kpis.map((kpi, idx) => {
+          const Icon = kpi.icon;
+          return (
+            <motion.div
+              key={idx}
+              variants={{
+                hidden: { opacity: 0, y: 16, filter: "blur(6px)" },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  filter: "blur(0px)",
+                  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                },
+              }}
+            >
+              <Card className="group relative overflow-hidden solaris-card solaris-glow rounded-2xl">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xs font-medium uppercase text-muted-foreground">
+                      {kpi.label}
+                    </CardTitle>
+                    <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold tracking-tight count-up">
+                    {kpi.value}
+                  </div>
+                  <div className="h-12 mt-3 w-full">
+                    <MiniSparkline
+                      data={kpi.chartData}
+                      color={
+                        kpi.positive ? "oklch(0.985 0 0)" : "oklch(0.708 0 0)"
+                      }
+                      positive={kpi.positive}
+                    />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{kpi.subtext}</span>
+                    <span
+                      className={`flex items-center gap-1 font-semibold ${
+                        kpi.positive
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {kpi.positive ? (
+                        <TrendingUp className="h-3 w-3" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3" />
+                      )}
+                      {kpi.variance}
+                    </span>
+                  </div>
+                </CardContent>
+                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Card>
+            </motion.div>
+          );
+        })}
+      </motion.div>
 
-            <div className="space-y-3">
-              {wards.map((ward, idx) => {
-                const isSelected = ward.id === selectedWardId;
-                return (
-                  <button
-                    key={ward.id}
-                    onClick={() => setSelectedWardId(ward.id)}
-                    className={`w-full group relative flex items-center justify-between bg-white p-4 text-left transition-all duration-300
-                      ${isSelected ? "shadow-md ring-1 ring-cyan-200 scale-[1.02]" : "hover:bg-cyan-50/50 hover:scale-[1.01]"}`}
-                    style={{ animationDelay: `${500 + idx * 50}ms` }}
-                  >
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 transition-opacity" style={{ backgroundColor: ward.color, opacity: isSelected ? 1 : 0 }} />
-                    
-                    <div className="flex-1 px-4">
-                      <div className="flex justify-between items-end mb-2">
-                        <div>
-                          <h3 className={`text-sm font-semibold transition-colors ${isSelected ? 'text-[#0891B2]' : 'text-[#164E63]'}`}>
-                            {ward.name}
-                          </h3>
-                          <span className="text-[10px] uppercase tracking-widest text-[#164E63]/50">
-                            {ward.occupiedBeds} of {ward.capacity} Beds
-                          </span>
+      {/* Ward Capacity & Detail */}
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Ward List */}
+        <section className="lg:col-span-5 space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground opacity-20"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-foreground"></span>
+            </span>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Live Ward Capacity
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {wards.map(ward => {
+              const isSelected = ward.id === selectedWardId;
+              return (
+                <Card
+                  key={ward.id}
+                  className={`cursor-pointer transition-all duration-500 solaris-card solaris-glow rounded-2xl ${
+                    isSelected
+                      ? "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/20"
+                      : "hover:border-primary/30 hover:shadow-md"
+                  }`}
+                  onClick={() => setSelectedWardId(ward.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold">{ward.name}</h3>
+                          <TrendIndicator trend={ward.trend} />
                         </div>
-                        <span className="text-lg font-light text-[#164E63]">
-                          {Math.round(ward.occupancy)}%
+                        <span className="text-xs text-muted-foreground">
+                          {ward.occupiedBeds} of {ward.capacity} Beds
                         </span>
                       </div>
-                      
-                      {/* Minimal Progress Bar */}
-                      <div className="h-1 w-full bg-cyan-100 overflow-hidden">
-                        <div
-                          className="h-full transition-all duration-1000 ease-out"
-                          style={{ width: `${Math.min(100, ward.occupancy)}%`, backgroundColor: ward.color }}
-                        />
+                      <div className="text-right">
+                        <StatusBadge status={ward.status} />
+                        <div className="text-lg font-bold mt-1">
+                          {Math.round(ward.occupancy)}%
+                        </div>
                       </div>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+                    <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000 ease-out bg-foreground"
+                        style={{
+                          width: `${Math.min(100, ward.occupancy)}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {ward.note}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
 
-          {/* Selected Ward Details */}
-          <section className="lg:col-span-7">
-            {selectedWard && (
-              <div className="bg-white h-full p-8 transition-all animate-[dashboard-page-enter_240ms_cubic-bezier(0.23,1,0.32,1)_both]">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-cyan-100 pb-6 mb-6">
-                  <div>
-                    <h4 className="text-2xl font-light tracking-tight text-[#164E63]">
+        {/* Ward Detail Panel */}
+        <section className="lg:col-span-7">
+          {selectedWard && (
+            <Card className="h-full solaris-card rounded-2xl">
+              <CardHeader className="border-b border-border/50">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <CardTitle className="text-2xl font-bold">
                       {selectedWard.name}
-                    </h4>
-                    <p className="text-sm text-[#164E63]/60 mt-1">
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
                       {selectedWard.note}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="block text-3xl font-light text-[#0891B2]">{selectedWard.occupiedBeds}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#164E63]/50">Active Patients</span>
+                    <div className="flex items-center gap-2 justify-end">
+                      <BedDouble className="h-5 w-5 text-muted-foreground" />
+                      <span className="block text-3xl font-bold text-foreground">
+                        {selectedWard.occupiedBeds}
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium uppercase text-muted-foreground">
+                      Active Patients
+                    </span>
                   </div>
                 </div>
-
-                <div className="space-y-4">
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border/50">
                   {selectedWard.activePatients.map(pt => (
-                    <div key={pt.id} className="group flex items-center justify-between border-b border-cyan-50 pb-4 last:border-0 hover:bg-cyan-50/30 p-2 -mx-2 transition-colors">
+                    <div
+                      key={pt.id}
+                      className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+                    >
                       <div>
-                        <div className="text-base font-medium text-[#164E63]">{pt.name}</div>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-[11px] font-mono text-[#0891B2]">{pt.id}</span>
-                          <span className="text-xs text-[#164E63]/70">{pt.acuity}</span>
+                        <div className="font-medium">{pt.name}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-mono border-border/50"
+                          >
+                            {pt.id}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {pt.acuity}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="text-xs font-semibold text-[#164E63]/60 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase">
                           {pt.wait}
                         </span>
-                        <Link
-                          to={`/patients/${pt.id}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-50 text-[#0891B2] transition-colors hover:bg-[#0891B2] hover:text-white"
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          render={<Link to={`/patients/${pt.id}`} />}
                         >
                           <ChevronRight className="h-4 w-4" />
-                        </Link>
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </section>
-        </div>
-
-        {/* Phase 3: Predictive Capacity Analytics */}
-        <section className="dashboard-page-transition" style={{ animationDelay: "700ms" }}>
-          <div className="flex items-center justify-between border-b border-cyan-200 pb-4 mb-6">
-            <h2 className="text-lg font-medium tracking-wide uppercase text-[#164E63]">
-              Predictive Analytics & Capacity Forecasting
-            </h2>
-            <span className="bg-indigo-100 text-indigo-700 px-3 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-              <Activity className="w-3 h-3" /> ML Pipeline Active
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-6 shadow-sm border border-cyan-50 col-span-2">
-              <h3 className="text-sm font-bold text-[#164E63] uppercase tracking-wider mb-4">7-Day Ward Load Forecast</h3>
-              <div className="flex h-32 items-end gap-2 border-b border-l border-slate-200 p-2">
-                {/* Synthetic 7-day projection data */}
-                {[78, 85, 92, 98, 91, 84, 75].map((val, i) => (
-                  <div key={i} className="group relative flex-1 flex flex-col justify-end">
-                    <div 
-                      className={`w-full transition-all duration-500 ${val > 90 ? 'bg-rose-400' : val > 80 ? 'bg-amber-400' : 'bg-cyan-400'}`} 
-                      style={{ height: `${val}%` }}
-                    ></div>
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500">
-                      Day {i + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-8 text-sm text-slate-600 flex justify-between">
-                <span>Current: 78% occupancy</span>
-                <span className="text-rose-600 font-bold">Peak Predicted: Day 4 (98%)</span>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 shadow-sm border border-cyan-50">
-              <h3 className="text-sm font-bold text-[#164E63] uppercase tracking-wider mb-4">Resource Constraints</h3>
-              <ul className="space-y-4">
-                <li className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">PICU Ventilator Availability</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Projected shortfall in 48h</p>
-                  </div>
-                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs font-bold">High Risk</span>
-                </li>
-                <li className="flex justify-between items-start border-t border-slate-100 pt-3">
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">Pediatric Surgery Staffing</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Surplus predicted for weekend</p>
-                  </div>
-                  <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-bold">Optimal</span>
-                </li>
-                <li className="flex justify-between items-start border-t border-slate-100 pt-3">
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">NICU Step-down Beds</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Bottleneck expected Day 3</p>
-                  </div>
-                  <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs font-bold">Monitor</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Action Items / Alerts Feed */}
-        <section className="dashboard-page-transition" style={{ animationDelay: "800ms" }}>
-          <div className="flex items-center justify-between border-b border-cyan-200 pb-4 mb-6">
-            <h2 className="text-lg font-medium tracking-wide uppercase text-[#164E63]">
-              Decision Support
-            </h2>
-            {unacknowledgedAlerts.length > 0 && (
-              <span className="bg-rose-100 text-rose-700 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
-                {unacknowledgedAlerts.length} Action Items
-              </span>
-            )}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {alerts.length === 0 ? (
-              <div className="col-span-full py-12 text-center text-[#164E63]/50">All systems nominal. No active alerts.</div>
-            ) : (
-              alerts.map((alert, idx) => {
-                const isCritical = alert.severity === "critical";
-                const isAmber = alert.severity === "amber";
-                
-                return (
-                  <div 
-                    key={alert.id} 
-                    className={`flex flex-col justify-between p-6 bg-white transition-all duration-300 ${
-                      alert.acknowledged ? "opacity-60 grayscale hover:grayscale-0" : "hover:shadow-md border border-transparent hover:border-cyan-100"
-                    }`}
-                    style={{ animationDelay: `${850 + idx * 50}ms` }}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        {!alert.acknowledged && (
-                          <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
-                            isCritical ? "bg-rose-100 text-rose-700" : 
-                            isAmber ? "bg-amber-100 text-amber-700" : 
-                            "bg-cyan-100 text-[#0891B2]"
-                          }`}>
-                            {alert.severity}
-                          </span>
-                        )}
-                        {alert.acknowledged && (
-                          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-[#059669]">
-                            <CheckCircle2 className="h-3 w-3" /> Resolved
-                          </span>
-                        )}
-                        {alert.patientName && (
-                          <span className="text-[11px] font-mono text-[#0891B2]">
-                            {alert.patientId}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-sm font-semibold text-[#164E63] mb-2 leading-snug">
-                        {alert.title}
-                      </h3>
-                      <p className="text-xs text-[#164E63]/70 line-clamp-3">
-                        {alert.detail}
-                      </p>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-cyan-50 flex items-center justify-between">
-                      {alert.acknowledged ? (
-                        <span className="text-[10px] uppercase tracking-widest text-[#164E63]/40">
-                          By {alert.acknowledgedBy}
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => setAcknowledgeModalAlert(alert)}
-                          className="text-xs font-semibold text-[#0891B2] hover:text-[#164E63] transition-colors flex items-center gap-1"
-                        >
-                          Acknowledge <ArrowRight className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
+              </CardContent>
+            </Card>
+          )}
         </section>
       </div>
 
-      {/* Acknowledge Alert Modal */}
-      {acknowledgeModalAlert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#164E63]/80 backdrop-blur-sm transition-opacity" onClick={() => setAcknowledgeModalAlert(null)}></div>
-          <div className="relative w-full max-w-lg bg-white p-8 shadow-2xl animate-[dashboard-page-enter_200ms_ease-out]">
-            <h3 className="text-2xl font-light text-[#164E63]">
-              Acknowledge Alert
-            </h3>
-            <p className="text-xs text-[#164E63]/60 mt-2 uppercase tracking-wide">
+      {/* Decision Support / Alerts */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">
+            Decision Support
+          </h2>
+          {unacknowledgedAlerts.length > 0 && (
+            <Badge
+              variant="outline"
+              className="bg-muted text-foreground border-border"
+            >
+              {unacknowledgedAlerts.length} Action Items
+            </Badge>
+          )}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {alerts.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-muted-foreground border border-border/50 rounded-xl bg-card">
+              <CheckCircle2 className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium">All systems nominal</p>
+              <p className="text-sm mt-1">No active alerts</p>
+            </div>
+          ) : (
+            alerts.map(alert => {
+              const isCritical = alert.severity === "critical";
+              const isAmber = alert.severity === "amber";
+
+              return (
+                <Card
+                  key={alert.id}
+                  className={`flex flex-col justify-between transition-all duration-500 solaris-card solaris-glow rounded-2xl ${
+                    alert.acknowledged
+                      ? "opacity-60"
+                      : "hover:border-foreground/20 hover:shadow-md border-l-2 border-l-border"
+                  }`}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {!alert.acknowledged && (
+                          <AlertIcon severity={alert.severity} />
+                        )}
+                        {!alert.acknowledged ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-muted text-foreground border-border"
+                          >
+                            {alert.severity}
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="bg-muted text-muted-foreground border-border gap-1"
+                          >
+                            <CheckCircle2 className="h-3 w-3" /> Resolved
+                          </Badge>
+                        )}
+                      </div>
+                      {alert.patientName && (
+                        <span className="text-xs font-mono text-muted-foreground">
+                          {alert.patientId}
+                        </span>
+                      )}
+                    </div>
+                    <CardTitle className="text-sm">{alert.title}</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-2 line-clamp-3">
+                      {alert.detail}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-0 mt-auto">
+                    <div className="pt-4 border-t border-border/50 flex items-center justify-between">
+                      {alert.acknowledged ? (
+                        <span className="text-xs text-muted-foreground">
+                          By {alert.acknowledgedBy}
+                        </span>
+                      ) : (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="px-0 gap-1"
+                          onClick={() => setAcknowledgeModalAlert(alert)}
+                        >
+                          Acknowledge <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </div>
+      </section>
+
+      {/* Financial Monitoring */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">
+            Financial Monitoring
+          </h2>
+        </div>
+
+        <Card className="solaris-card rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                <tr>
+                  <th className="px-6 py-3 font-semibold">Transaction ID</th>
+                  <th className="px-6 py-3 font-semibold">Date</th>
+                  <th className="px-6 py-3 font-semibold">Description</th>
+                  <th className="px-6 py-3 font-semibold">Method</th>
+                  <th className="px-6 py-3 font-semibold">Amount</th>
+                  <th className="px-6 py-3 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {payments.slice(0, 5).map(txn => (
+                  <tr key={txn.id} className="hover:bg-muted/30">
+                    <td className="px-6 py-4 font-medium">{txn.id}</td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {new Date(txn.date).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {txn.description}
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {txn.paymentMethod}
+                    </td>
+                    <td className="px-6 py-4 font-semibold">
+                      {txn.currency === "USD" ? "$" : "₹"}
+                      {txn.amount.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge
+                        variant="outline"
+                        className={
+                          txn.status === "Completed"
+                            ? "bg-muted text-foreground border-border"
+                            : txn.status === "Refunded"
+                              ? "bg-muted text-muted-foreground border-border"
+                              : "bg-muted text-muted-foreground border-border"
+                        }
+                      >
+                        {txn.status}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </section>
+
+      {/* Acknowledge Modal */}
+      <Dialog
+        open={!!acknowledgeModalAlert}
+        onOpenChange={open => !open && setAcknowledgeModalAlert(null)}
+      >
+        <DialogContent className="w-full max-w-lg bg-card border-border/50">
+          <DialogHeader>
+            <DialogTitle>Acknowledge Alert</DialogTitle>
+            <p className="text-sm text-muted-foreground">
               Document clinical action for audit trail
             </p>
-
-            <div className="mt-6 bg-cyan-50 p-4 border-l-2 border-[#0891B2]">
-              <div className="text-sm font-semibold text-[#164E63]">
-                {acknowledgeModalAlert.title}
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="bg-muted/50 p-4 rounded-lg border-l-4 border-primary">
+              <div className="font-semibold text-sm">
+                {acknowledgeModalAlert?.title}
               </div>
-              <p className="text-sm text-[#164E63]/70 mt-1">
-                {acknowledgeModalAlert.detail}
+              <p className="text-sm text-muted-foreground mt-1">
+                {acknowledgeModalAlert?.detail}
               </p>
             </div>
-
-            <div className="mt-8">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-[#164E63]/70 mb-2">
-                Action Taken
-              </label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="action">Action Taken</Label>
+              <Textarea
+                id="action"
+                rows={3}
+                placeholder="Enter actions taken to resolve this alert..."
                 value={actionInput}
                 onChange={e => setActionInput(e.target.value)}
-                placeholder="Details..."
-                className="w-full min-h-[120px] border border-cyan-200 bg-transparent p-4 text-sm text-[#164E63] placeholder:text-[#164E63]/30 focus:border-[#0891B2] focus:ring-1 focus:ring-[#0891B2] focus:outline-none transition-all resize-none rounded-none"
-                autoFocus
+                className="bg-background border-border/50"
               />
             </div>
-
-            <div className="mt-8 flex justify-end gap-4">
-              <button
-                onClick={() => setAcknowledgeModalAlert(null)}
-                className="px-6 py-3 text-xs font-bold uppercase tracking-widest text-[#164E63]/60 hover:text-[#164E63] transition-colors"
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAcknowledgeModalAlert(null);
+                  setActionInput("");
+                }}
+                className="border-border/50"
               >
                 Cancel
-              </button>
-              <button
-                disabled={!actionInput.trim()}
+              </Button>
+              <Button
                 onClick={handleAcknowledge}
-                className="bg-[#059669] px-8 py-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={!actionInput.trim()}
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Log Action
-              </button>
+                <CheckCircle2 className="h-4 w-4" /> Acknowledge & Record
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

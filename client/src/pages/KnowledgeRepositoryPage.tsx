@@ -1,11 +1,28 @@
 import React, { useState } from "react";
 import { usePediatric } from "../context/PediatricContext";
-import { BookOpen, Search, Filter, FileText, Database, Shield } from "lucide-react";
+import {
+  BookOpen,
+  Search,
+  Filter,
+  FileText,
+  Database,
+  Shield,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export const KnowledgeRepositoryPage: React.FC = () => {
   const { cases } = usePediatric();
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Phase 2: Only show closed, consented cases that have been de-identified
   const publishedCases = cases
     .filter(c => c.currentStage === 10)
@@ -20,126 +37,170 @@ export const KnowledgeRepositoryPage: React.FC = () => {
       guardianPhone: "[REDACTED]",
     }));
 
-  const filteredCases = publishedCases.filter(c => 
-    c.primaryCondition.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.chiefComplaint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.assignedSpecialistName?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCases = publishedCases.filter(
+    c =>
+      c.primaryCondition.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.chiefComplaint.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.assignedSpecialistName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-6">
+    <div className="space-y-8 max-w-7xl mx-auto py-8">
+      <div className="flex items-center justify-between border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            <Database className="h-8 w-8 text-indigo-600" />
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Database className="h-8 w-8 text-primary" />
             Institutional Knowledge Repository
           </h1>
-          <p className="text-slate-500 mt-2 flex items-center gap-2">
-            <Shield className="h-4 w-4 text-emerald-600" />
-            De-identified clinical history, outcomes, and intelligence for medical education.
+          <p className="text-muted-foreground mt-2 flex items-center gap-2 text-sm">
+            <Shield className="h-4 w-4 text-primary" />
+            De-identified clinical history, outcomes, and intelligence for
+            medical education.
           </p>
         </div>
       </div>
 
-      {/* Phase 3: Medical Education Module */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-none border border-indigo-200 shadow-sm p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-indigo-100 p-2 text-indigo-700 rounded-none"><BookOpen className="w-5 h-5"/></div>
-            <h3 className="font-display font-bold text-slate-900 text-lg">Curated Teaching Sets</h3>
-          </div>
-          <p className="text-slate-600 text-sm mb-4 leading-relaxed">
-            Standardized case collections designed for residents and junior doctors. Contains annotated timelines, diagnostic branching logic, and peer-reviewed treatment paths.
-          </p>
-          <div className="flex gap-2">
-            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-1 font-bold">Congenital Heart Defects</span>
-            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-1 font-bold">PICU Triage</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-none border border-amber-200 shadow-sm p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-amber-100 p-2 text-amber-700 rounded-none"><Database className="w-5 h-5"/></div>
-            <h3 className="font-display font-bold text-slate-900 text-lg">Rare-Case Collections</h3>
-          </div>
-          <p className="text-slate-600 text-sm mb-4 leading-relaxed">
-            High-complexity, multi-disciplinary cases isolated for institutional review. Fully de-identified and approved by Clinical Governance for academic publication.
-          </p>
-          <div className="flex gap-2">
-            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-1 font-bold">Neuromuscular</span>
-            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-1 font-bold">Neonatal Surgery</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded border shadow-sm p-6">
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search by diagnosis, symptom, or procedure..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded border border-slate-200">
-            <Filter className="h-4 w-4" /> Filters
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {filteredCases.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
-              <BookOpen className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-              <p>No closed cases available for the repository yet.</p>
-              <p className="text-sm">Complete a clinical case to Stage 10 to publish it here.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="relative overflow-hidden group border-primary/20">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+          <CardHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-primary/10 p-2 text-primary rounded-lg">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <CardTitle>Curated Teaching Sets</CardTitle>
             </div>
-          ) : (
-            filteredCases.map(c => (
-              <div key={c.id} className="border border-slate-200 rounded p-5 hover:border-indigo-300 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded">
-                        {c.patientId}
+            <CardDescription className="leading-relaxed">
+              Standardized case collections designed for residents and junior
+              doctors. Contains annotated timelines, diagnostic branching logic,
+              and peer-reviewed treatment paths.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Badge variant="secondary">Congenital Heart Defects</Badge>
+              <Badge variant="secondary">PICU Triage</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden group border-border">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-muted rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+          <CardHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-muted p-2 text-primary rounded-lg">
+                <Database className="w-5 h-5" />
+              </div>
+              <CardTitle>Rare-Case Collections</CardTitle>
+            </div>
+            <CardDescription className="leading-relaxed">
+              High-complexity, multi-disciplinary cases isolated for
+              institutional review. Fully de-identified and approved by Clinical
+              Governance for academic publication.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Badge variant="secondary">Neuromuscular</Badge>
+              <Badge variant="secondary">Neonatal Surgery</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by diagnosis, symptom, or procedure..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button variant="outline" className="gap-2">
+              <Filter className="h-4 w-4" /> Filters
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {filteredCases.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border-2 border-dashed">
+                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="font-medium text-foreground">
+                  No closed cases available for the repository yet.
+                </p>
+                <p className="text-sm mt-1">
+                  Complete a clinical case to Stage 10 to publish it here.
+                </p>
+              </div>
+            ) : (
+              filteredCases.map(c => (
+                <div
+                  key={c.id}
+                  className="border rounded-lg p-5 hover:border-primary/50 hover:shadow-sm transition-all bg-card"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge
+                          variant="secondary"
+                          className="font-mono text-primary bg-primary/10 hover:bg-primary/10"
+                        >
+                          {c.patientId}
+                        </Badge>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Age: {c.ageText} • {c.ward}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold">
+                        {c.primaryCondition}
+                      </h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        Chief Complaint: {c.chiefComplaint}
+                      </p>
+                    </div>
+                    <Button variant="secondary" className="gap-2 shrink-0">
+                      <FileText className="h-4 w-4" /> View Full Case
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="block text-muted-foreground font-semibold text-xs uppercase mb-1">
+                        Treated By
                       </span>
-                      <span className="text-sm font-semibold text-slate-500">
-                        Age: {c.ageText} • {c.ward}
+                      <span className="font-medium">
+                        {c.assignedSpecialistName || "Unknown"}
                       </span>
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900">{c.primaryCondition}</h3>
-                    <p className="text-slate-600 text-sm mt-2 font-medium">Chief Complaint: {c.chiefComplaint}</p>
-                  </div>
-                  <button className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold text-sm bg-indigo-50 px-4 py-2 rounded">
-                    <FileText className="h-4 w-4" /> View Full Case
-                  </button>
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="block text-slate-400 font-bold text-xs uppercase mb-1">Treated By</span>
-                    <span className="font-semibold text-slate-800">{c.assignedSpecialistName || "Unknown"}</span>
-                  </div>
-                  <div>
-                    <span className="block text-slate-400 font-bold text-xs uppercase mb-1">Risk Category</span>
-                    <span className="font-semibold text-slate-800">{c.urgency}</span>
-                  </div>
-                  <div className="md:col-span-2">
-                    <span className="block text-slate-400 font-bold text-xs uppercase mb-1">Resolution Note</span>
-                    <span className="font-medium text-slate-700 italic">
-                      "{c.stageHistory.find(h => h.stageNumber === 10)?.note || "Case successfully resolved and closed."}"
-                    </span>
+                    <div>
+                      <span className="block text-muted-foreground font-semibold text-xs uppercase mb-1">
+                        Risk Category
+                      </span>
+                      <Badge variant="outline">{c.urgency}</Badge>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="block text-muted-foreground font-semibold text-xs uppercase mb-1">
+                        Resolution Note
+                      </span>
+                      <span className="font-medium italic">
+                        "
+                        {c.stageHistory.find(h => h.stageNumber === 10)?.note ||
+                          "Case successfully resolved and closed."}
+                        "
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,13 +1,41 @@
 import React, { useState } from "react";
 import { usePediatric } from "../context/PediatricContext";
-import { Users, FileText, CheckCircle2, MessageSquare, Video } from "lucide-react";
+import {
+  Users,
+  FileText,
+  CheckCircle2,
+  MessageSquare,
+  Video,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export const MultidisciplinaryWorkspacePage: React.FC = () => {
-  const { cases, specialists, addAuditEntry, updateCaseStage, addClinicalNote } = usePediatric();
-  
+  const {
+    cases,
+    specialists,
+    addAuditEntry,
+    updateCaseStage,
+    addClinicalNote,
+  } = usePediatric();
+
   // Find cases that might need MDT (e.g. Stage 7 or 8)
-  const mdtCases = cases.filter(c => c.currentStage >= 6 && c.currentStage <= 9);
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(mdtCases[0]?.id || null);
+  const mdtCases = cases.filter(
+    c => c.currentStage >= 6 && c.currentStage <= 9
+  );
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(
+    mdtCases[0]?.id || null
+  );
   const [decisionText, setDecisionText] = useState("");
   const [guardianInformed, setGuardianInformed] = useState(false);
 
@@ -15,13 +43,13 @@ export const MultidisciplinaryWorkspacePage: React.FC = () => {
 
   const handlePublishDecision = () => {
     if (!selectedCaseId || !decisionText) return;
-    
+
     addClinicalNote(
-      selectedCaseId, 
-      `MDT Decision Published: ${decisionText}. ${guardianInformed ? "Guardian acknowledged." : "Guardian notification pending."}`, 
+      selectedCaseId,
+      `MDT Decision Published: ${decisionText}. ${guardianInformed ? "Guardian acknowledged." : "Guardian notification pending."}`,
       "Tumor/MDT Board"
     );
-    
+
     // Log audit
     addAuditEntry({
       user: "Tumor Board / MDT",
@@ -29,7 +57,7 @@ export const MultidisciplinaryWorkspacePage: React.FC = () => {
       actionType: "NOTE_ADDED",
       caseId: selectedCaseId,
       summary: "Multidisciplinary team decision published.",
-      details: decisionText
+      details: decisionText,
     });
 
     setDecisionText("");
@@ -37,100 +65,148 @@ export const MultidisciplinaryWorkspacePage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-6">
+    <div className="space-y-8 max-w-7xl mx-auto py-8">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            <Users className="h-8 w-8 text-indigo-600" />
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Users className="h-8 w-8 text-primary" />
             Multidisciplinary Team Workspace
           </h1>
-          <p className="text-slate-500 mt-2">Shared collaborative space for complex cases spanning multiple sub-specialties.</p>
+          <p className="text-muted-foreground mt-2">
+            Shared collaborative space for complex cases spanning multiple
+            sub-specialties.
+          </p>
         </div>
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded shadow-sm font-bold flex items-center gap-2">
-          <Video className="h-5 w-5" /> Convene Secure Virtual MDT Call
-        </button>
+        <Button className="gap-2">
+          <Video className="h-4 w-4" /> Convene Secure Virtual MDT Call
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 bg-white rounded border shadow-sm p-4">
-          <h2 className="font-bold text-slate-800 mb-4 border-b pb-2">MDT Queue (Complex Cases)</h2>
-          <div className="space-y-3">
-            {mdtCases.map(c => (
-              <button 
-                key={c.id}
-                onClick={() => setSelectedCaseId(c.id)}
-                className={`w-full text-left p-3 rounded border transition ${selectedCaseId === c.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-indigo-300'}`}
-              >
-                <div className="font-bold text-slate-800">{c.patientName}</div>
-                <div className="text-xs text-indigo-600 mt-1 font-semibold">{c.primaryCondition}</div>
-              </button>
-            ))}
-            {mdtCases.length === 0 && <p className="text-sm text-slate-500">No active cases flagged for MDT.</p>}
-          </div>
-        </div>
+        <Card className="lg:col-span-1 h-fit">
+          <CardHeader>
+            <CardTitle>MDT Queue (Complex Cases)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mdtCases.map(c => (
+                <Button
+                  key={c.id}
+                  variant={selectedCaseId === c.id ? "default" : "outline"}
+                  onClick={() => setSelectedCaseId(c.id)}
+                  className={`w-full justify-start h-auto flex-col items-start p-4 ${selectedCaseId === c.id ? "" : "hover:border-primary/50"}`}
+                >
+                  <div className="font-semibold text-base">{c.patientName}</div>
+                  <div
+                    className={`text-xs mt-1 ${selectedCaseId === c.id ? "text-primary-foreground/80" : "text-primary"}`}
+                  >
+                    {c.primaryCondition}
+                  </div>
+                </Button>
+              ))}
+              {mdtCases.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No active cases flagged for MDT.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="lg:col-span-2 space-y-6">
           {selectedCase ? (
-            <>
-              <div className="bg-white rounded border shadow-sm p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-1">{selectedCase.patientName} ({selectedCase.patientId})</h2>
-                    <p className="text-sm font-semibold text-slate-600">Chief Complaint: {selectedCase.chiefComplaint}</p>
+            <Card>
+              <CardHeader className="flex flex-row items-start justify-between pb-4">
+                <div>
+                  <CardTitle className="text-2xl">
+                    {selectedCase.patientName}{" "}
+                    <span className="text-base font-normal text-muted-foreground font-mono ml-2">
+                      ({selectedCase.patientId})
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="font-medium mt-1">
+                    Chief Complaint: {selectedCase.chiefComplaint}
+                  </CardDescription>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="bg-muted text-primary uppercase pointer-events-none"
+                >
+                  MDT Review Required
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
+                      Assigned Specialist
+                    </h3>
+                    <div className="font-semibold">
+                      {selectedCase.assignedSpecialistName || "None"}
+                    </div>
                   </div>
-                  <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded text-xs font-bold uppercase">
-                    MDT Review Required
-                  </span>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
+                      Requested MDT Participants
+                    </h3>
+                    <div className="font-semibold">
+                      Cardiology, Neurology, Surgery
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-slate-50 p-4 rounded border border-slate-100">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Assigned Specialist</h3>
-                    <div className="font-semibold text-slate-800">{selectedCase.assignedSpecialistName || "None"}</div>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded border border-slate-100">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Requested MDT Participants</h3>
-                    <div className="font-semibold text-slate-800">Cardiology, Neurology, Surgery</div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">
-                    <MessageSquare className="h-5 w-5 text-indigo-600" /> Document MDT Decision & Rationale
+                <div className="border-t pt-6 space-y-4">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" /> Document
+                    MDT Decision & Rationale
                   </h3>
-                  <textarea 
-                    value={decisionText}
-                    onChange={e => setDecisionText(e.target.value)}
-                    placeholder="Enter collaborative clinical decision, evidence considered, and updated treatment protocol..."
-                    className="w-full h-32 border border-slate-300 p-3 rounded focus:ring-1 focus:ring-indigo-500 outline-none mb-4"
-                  />
-                  
-                  <label className="flex items-center gap-2 mb-6 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={guardianInformed}
-                      onChange={e => setGuardianInformed(e.target.checked)}
-                      className="rounded accent-indigo-600 h-4 w-4" 
-                    />
-                    <span className="text-sm font-semibold text-slate-700">Guardian informed of outcome and acknowledged</span>
-                  </label>
 
-                  <button 
-                    onClick={handlePublishDecision}
-                    disabled={!decisionText.trim()}
-                    className="w-full bg-indigo-600 text-white font-bold py-3 rounded shadow hover:bg-indigo-700 transition disabled:opacity-50"
-                  >
-                    Publish Decision to Health Record
-                  </button>
+                  <div className="space-y-4">
+                    <Textarea
+                      value={decisionText}
+                      onChange={e => setDecisionText(e.target.value)}
+                      placeholder="Enter collaborative clinical decision, evidence considered, and updated treatment protocol..."
+                      className="min-h-[120px]"
+                    />
+
+                    <div className="flex items-center space-x-2 bg-card p-2 rounded-lg">
+                      <Checkbox
+                        id="guardian"
+                        checked={guardianInformed}
+                        onCheckedChange={checked =>
+                          setGuardianInformed(checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor="guardian"
+                        className="text-sm font-semibold cursor-pointer"
+                      >
+                        Guardian informed of outcome and acknowledged
+                      </Label>
+                    </div>
+
+                    <Button
+                      onClick={handlePublishDecision}
+                      disabled={!decisionText.trim()}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Publish Decision to Health Record
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded p-12 text-center text-slate-500">
-              <Users className="h-16 w-16 mx-auto mb-4 text-slate-300" />
-              <h2 className="text-xl font-bold">No Case Selected</h2>
-              <p>Select a case from the MDT queue to document board decisions.</p>
-            </div>
+            <Card className="border-2 border-dashed bg-muted/30">
+              <CardContent className="p-12 text-center flex flex-col items-center justify-center">
+                <Users className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                <h2 className="text-xl font-bold mb-2">No Case Selected</h2>
+                <p className="text-muted-foreground">
+                  Select a case from the MDT queue to document board decisions.
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
