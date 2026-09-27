@@ -1,5 +1,9 @@
 export interface VitalsRange {
-  ageGroup: "Infant (0-1 yr)" | "Toddler (1-3 yrs)" | "Child (4-11 yrs)" | "Adolescent (12-18 yrs)";
+  ageGroup:
+    | "Infant (0-1 yr)"
+    | "Toddler (1-3 yrs)"
+    | "Child (4-11 yrs)"
+    | "Adolescent (12-18 yrs)";
   hrMin: number;
   hrMax: number;
   rrMin: number;
@@ -89,7 +93,10 @@ export function evaluateVitals(
   const flags: VitalFlag[] = [];
 
   // Heart Rate
-  if (vitals.heartRate > range.hrMax + 20 || vitals.heartRate < range.hrMin - 15) {
+  if (
+    vitals.heartRate > range.hrMax + 20 ||
+    vitals.heartRate < range.hrMin - 15
+  ) {
     flags.push({
       param: "Heart Rate",
       value: `${vitals.heartRate} bpm`,
@@ -116,7 +123,10 @@ export function evaluateVitals(
   }
 
   // Respiratory Rate
-  if (vitals.respiratoryRate > range.rrMax + 10 || vitals.respiratoryRate < range.rrMin - 5) {
+  if (
+    vitals.respiratoryRate > range.rrMax + 10 ||
+    vitals.respiratoryRate < range.rrMin - 5
+  ) {
     flags.push({
       param: "Respiratory Rate",
       value: `${vitals.respiratoryRate}/min`,
@@ -124,7 +134,10 @@ export function evaluateVitals(
       expectedRange: `${range.rrMin}-${range.rrMax}/min`,
       message: `Severe tachypnea/bradypnea for ${range.ageGroup}`,
     });
-  } else if (vitals.respiratoryRate > range.rrMax || vitals.respiratoryRate < range.rrMin) {
+  } else if (
+    vitals.respiratoryRate > range.rrMax ||
+    vitals.respiratoryRate < range.rrMin
+  ) {
     flags.push({
       param: "Respiratory Rate",
       value: `${vitals.respiratoryRate}/min`,
@@ -178,7 +191,10 @@ export function evaluateVitals(
       expectedRange: `${range.tempMin}-${range.tempMax}°C`,
       message: `High fever or hypothermia for ${range.ageGroup}`,
     });
-  } else if (vitals.temperature > range.tempMax || vitals.temperature < range.tempMin) {
+  } else if (
+    vitals.temperature > range.tempMax ||
+    vitals.temperature < range.tempMin
+  ) {
     flags.push({
       param: "Temperature",
       value: `${vitals.temperature}°C`,

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { clearAllSecure } from "@/lib/secureStore";
 
-export type Role = "Executive" | "Nurse" | "Pediatrician" | "Specialist" | "Parent" | "Admin";
+export type Role =
+  "Executive" | "Nurse" | "Pediatrician" | "Specialist" | "Parent" | "Admin";
 
 export interface User {
   id: string;
@@ -24,12 +26,18 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const raw = localStorage.getItem("pcn_auth_user");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
   const [isBreakGlassActive, setIsBreakGlassActive] = useState(false);
   const [breakGlassReason, setBreakGlassReason] = useState<string | null>(null);
 
   const login = (newUser: User) => {
     setUser(newUser);
+    try { localStorage.setItem("pcn_auth_user", JSON.stringify(newUser)); } catch {}
     setIsBreakGlassActive(false);
     setBreakGlassReason(null);
   };
@@ -38,6 +46,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setIsBreakGlassActive(false);
     setBreakGlassReason(null);
+    try { localStorage.removeItem("pcn_auth_user"); } catch {}
+    // HIPAA: clear PHI from localStorage on logout (demo-grade)
+    clearAllSecure();
   };
 
   const activateBreakGlass = (reason: string) => {
@@ -46,7 +57,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isBreakGlassActive, breakGlassReason, login, logout, activateBreakGlass }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isBreakGlassActive,
+        breakGlassReason,
+        login,
+        logout,
+        activateBreakGlass,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,20 +1,76 @@
+import { DatePicker } from "../components/ui/date-picker";
 import React, { useState } from "react";
 import { usePediatric, CARE_STAGES } from "../context/PediatricContext";
-import { User, Activity, FileText, RefreshCcw, CheckCircle, HelpCircle, ShieldCheck, Calendar, Video } from "lucide-react";
+import {
+  User,
+  Activity,
+  FileText,
+  CheckCircle,
+  ShieldCheck,
+  Calendar,
+  Video,
+  FileUp,
+  Pill,
+  LayoutDashboard,
+  Settings,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { TeleconsultModal } from "../components/TeleconsultModal";
+import { QuickChat } from "../components/QuickChat";
+import { AIHelperBot } from "../components/AIHelperBot";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const ParentPortal: React.FC = () => {
-  const { getPatientById, getCaseByPatientId, specialists, requestSecondOpinion } = usePediatric();
-  
-  // Simulated Guardian Session for a specific child to enforce access scoping
+  const {
+    getPatientById,
+    getCaseByPatientId,
+    specialists,
+    requestSecondOpinion,
+  } = usePediatric();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const activeChildId = "PT-1001";
-  
+
   const patient = getPatientById(activeChildId);
   const activeCase = getCaseByPatientId(activeChildId);
-  const assignedSpecialist = specialists.find(s => s.id === activeCase?.assignedSpecialistId);
-  
+  const assignedSpecialist = specialists.find(
+    s => s.id === activeCase?.assignedSpecialistId
+  );
+
   const [secondOpinionRequested, setSecondOpinionRequested] = useState(false);
   const [isTeleconsultOpen, setIsTeleconsultOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingTime, setBookingTime] = useState("");
+  const [isBooked, setIsBooked] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const handleSecondOpinion = () => {
     if (activeCase && !secondOpinionRequested) {
@@ -25,194 +81,509 @@ export const ParentPortal: React.FC = () => {
 
   if (!patient || !activeCase) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-md w-full">
-          <p className="text-slate-500 text-lg">No active records found for your child.</p>
-        </div>
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full text-center py-8">
+          <p className="text-muted-foreground text-lg">
+            No active records found for your child.
+          </p>
+        </Card>
       </div>
     );
   }
 
-  // Find current stage info
-  const currentStageInfo = CARE_STAGES.find(s => s.stageNumber === activeCase.currentStage);
+  const currentStageInfo = CARE_STAGES.find(
+    s => s.stageNumber === activeCase.currentStage
+  );
+
+  const tabs = [
+    {
+      id: "overview",
+      icon: <LayoutDashboard className="w-4 h-4" />,
+      label: "Overview",
+    },
+    { id: "profile", icon: <User className="w-4 h-4" />, label: "My Profile" },
+    { id: "documents", icon: <FileUp className="w-4 h-4" />, label: "Reports" },
+    {
+      id: "careteam",
+      icon: <ShieldCheck className="w-4 h-4" />,
+      label: "Care Team & Chat",
+    },
+    {
+      id: "prescriptions",
+      icon: <Pill className="w-4 h-4" />,
+      label: "Prescriptions",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] font-sans text-slate-800 pb-20 selection:bg-blue-200">
-      {/* Calm Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Care Portal</h1>
-            <p className="text-sm text-slate-500 font-medium mt-0.5">Guardian Access for {patient.fullName}</p>
-          </div>
-          <div className="h-10 w-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 border border-blue-100">
-            <User className="w-5 h-5" />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-        
-        {/* Journey Tracker */}
-        <section className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 border border-blue-50">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-blue-50 p-2 rounded-xl">
-              <Activity className="w-5 h-5 text-blue-600" />
-            </div>
-            <h2 className="text-xl font-semibold text-slate-900">Current Care Journey</h2>
-          </div>
-          
-          <div className="relative pl-6 pb-2 border-l-2 border-blue-100 space-y-8">
-            <div className="relative">
-              <span className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-blue-50"></span>
-              <div className="bg-blue-50 text-blue-900 px-3 py-1 rounded-full text-xs font-bold inline-block mb-2 uppercase tracking-wide">
-                Stage {activeCase.currentStage} of 10
-              </div>
-              <h3 className="font-semibold text-slate-900 text-lg">{currentStageInfo?.name}</h3>
-              <p className="text-slate-600 mt-1">{currentStageInfo?.description}</p>
-              
-              <div className="mt-4 bg-[#F8FAFC] p-4 rounded-xl border border-slate-100">
-                <p className="text-sm text-slate-700">
-                  <strong className="text-slate-900 block mb-1">What happens next:</strong>
-                  The clinical team is reviewing all data and will communicate the subsequent steps directly with you. 
-                </p>
-              </div>
-            </div>
-            
-            {/* Future Mock Step */}
-            {activeCase.currentStage < 10 && (
-              <div className="relative opacity-60">
-                <span className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-slate-300 ring-4 ring-white"></span>
-                <h3 className="font-semibold text-slate-500 text-base">Resolution & Discharge</h3>
-                <p className="text-sm text-slate-500 mt-1">Final clearance and home care instructions.</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Plain-Language Care Plan */}
-        <section className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 border border-blue-50">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-emerald-50 p-2 rounded-xl">
-              <FileText className="w-5 h-5 text-emerald-600" />
-            </div>
-            <h2 className="text-xl font-semibold text-slate-900">Treatment Plan</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="bg-[#F8FAFC] p-5 rounded-xl border border-slate-100">
-              <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-2">
-                Diagnosis & Goal
-              </h3>
-              <p className="text-slate-700 text-sm leading-relaxed">
-                Your child is currently being monitored for <strong>{activeCase.primaryCondition}</strong>. The primary objective today is to stabilize their condition and ensure comfort while the care team prepares the long-term plan.
-              </p>
-            </div>
-            
-            <div className="bg-white p-5 rounded-xl border border-slate-100">
-              <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-slate-400" /> Upcoming Schedule & Updates
-              </h3>
-              <ul className="space-y-4">
-                {activeCase.clinicalNotes.slice(0, 2).map(note => (
-                  <li key={note.id} className="text-sm text-slate-600 flex items-start gap-3">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full mt-1.5 shrink-0"></span>
-                    <span className="leading-relaxed">{note.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Specialist Transparency Profile */}
-        {assignedSpecialist && (
-          <section className="bg-white rounded-2xl shadow-sm overflow-hidden border border-blue-50">
-            <div className="bg-blue-600 p-6 sm:p-8 flex items-center gap-5">
-              <img 
-                src={assignedSpecialist.avatar} 
-                alt={assignedSpecialist.name} 
-                className="w-20 h-20 rounded-full ring-4 ring-white shadow-lg object-cover bg-blue-100 shrink-0"
-              />
-              <div className="text-white">
-                <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">Assigned Specialist</p>
-                <h2 className="text-2xl font-bold">{assignedSpecialist.name}</h2>
-                <p className="text-blue-100 text-sm mt-1">{assignedSpecialist.title}</p>
-              </div>
-              <div className="ml-auto">
-                <button 
-                  onClick={() => setIsTeleconsultOpen(true)}
-                  className="bg-white text-blue-600 hover:bg-blue-50 font-bold py-2 px-4 rounded-xl flex items-center shadow-md transition-colors text-sm cursor-pointer"
-                >
-                  <Video className="w-4 h-4 mr-2" /> Join Teleconsultation
-                </button>
-              </div>
-            </div>
-
-            <TeleconsultModal
-              isOpen={isTeleconsultOpen}
-              onClose={() => setIsTeleconsultOpen(false)}
-              patientName={patient.fullName}
-              specialistName={`Dr. ${assignedSpecialist.name}`}
-            />
-            
-            <div className="p-6 sm:p-8 space-y-6">
-              <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100/50">
-                <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-2">
-                  <ShieldCheck className="w-4 h-4 text-blue-600" /> Why were they selected for {patient.fullName}?
-                </h3>
-                <p className="text-sm text-slate-700 leading-relaxed">
-                  {assignedSpecialist.rationale}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#F8FAFC] p-4 rounded-xl border border-slate-100 text-center">
-                  <div className="text-3xl font-light text-blue-600 mb-1">{assignedSpecialist.experienceYears}</div>
-                  <div className="text-xs text-slate-500 font-medium uppercase tracking-wide">Years Experience</div>
-                </div>
-                <div className="bg-[#F8FAFC] p-4 rounded-xl border border-slate-100 text-center">
-                  <div className="text-3xl font-light text-emerald-600 mb-1">{assignedSpecialist.rating}</div>
-                  <div className="text-xs text-slate-500 font-medium uppercase tracking-wide">Outcome Score</div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Second Opinion Workflow */}
-        <section className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 border border-purple-100 text-center">
-          <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 mx-auto mb-4 rotate-3">
-            <HelpCircle className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Want another perspective?</h2>
-          <p className="text-sm text-slate-600 mb-6 max-w-md mx-auto leading-relaxed">
-            We completely support your right to a second opinion. It's fast, free, and won't disrupt your child's current care plan.
+    <div className="min-h-screen bg-muted/10 font-sans flex flex-col md:flex-row">
+      <aside className="w-full md:w-64 bg-card border-r shadow-sm md:min-h-screen flex flex-col shrink-0">
+        <div className="p-6 border-b">
+          <h1 className="text-2xl font-bold tracking-tight text-primary">
+            Care Portal
+          </h1>
+          <p className="text-xs text-muted-foreground font-semibold mt-1 uppercase tracking-wider">
+            Patient Dashboard
           </p>
-          
-          <button 
-            onClick={handleSecondOpinion}
-            disabled={secondOpinionRequested}
-            className={`w-full sm:w-auto px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 mx-auto transition-all ${
-              secondOpinionRequested 
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-not-allowed' 
-              : 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
-            }`}
-          >
-            {secondOpinionRequested ? (
-              <><CheckCircle className="w-5 h-5" /> Second Opinion Requested</>
-            ) : (
-              <><RefreshCcw className="w-5 h-5" /> Request Second Opinion</>
-            )}
-          </button>
-          
-          {secondOpinionRequested && (
-            <p className="text-xs text-emerald-600 font-medium mt-4">
-              Your request has been logged. A care coordinator will contact you shortly.
-            </p>
-          )}
-        </section>
+        </div>
 
+        <nav className="flex-1 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible scrollbar-hide">
+          {tabs.map(tab => (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? "default" : "ghost"}
+              className="justify-start gap-3 w-auto md:w-full"
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.icon} {tab.label}
+            </Button>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t hidden md:block">
+          <Button
+            variant="ghost"
+            onClick={() => {
+              logout();
+              navigate("/");
+            }}
+            className="w-full justify-start h-auto p-3 hover:bg-destructive/10 hover:text-destructive gap-3"
+          >
+            <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center font-bold">
+              {patient.guardianName.charAt(0)}
+            </div>
+            <div className="flex-1 text-left overflow-hidden">
+              <p className="text-sm font-bold truncate">
+                {patient.guardianName}
+              </p>
+              <p className="text-xs opacity-70 truncate">Logout</p>
+            </div>
+          </Button>
+        </div>
+      </aside>
+
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen relative">
+        <div className="max-w-4xl mx-auto space-y-6 pb-20">
+          <Card>
+            <CardContent className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">{patient.fullName}</h2>
+                <p className="text-muted-foreground font-medium text-sm mt-1">
+                  Patient ID: {patient.id} • {patient.ageYears} yrs •{" "}
+                  {patient.gender}
+                </p>
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-muted text-primary pointer-events-none text-sm py-1.5 px-3 flex items-center gap-2"
+              >
+                <Activity className="w-4 h-4" /> Stage {activeCase.currentStage}{" "}
+                Active
+              </Badge>
+            </CardContent>
+          </Card>
+
+          {activeTab === "overview" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-primary" /> Care Journey
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative pl-6 pb-2 border-l-2 border-primary/20 space-y-6 ml-2 mt-2">
+                    <div className="relative">
+                      <span className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-primary ring-4 ring-background"></span>
+                      <h4 className="font-semibold text-foreground">
+                        {currentStageInfo?.name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {currentStageInfo?.description}
+                      </p>
+                    </div>
+                    {activeCase.currentStage < 10 && (
+                      <div className="relative opacity-50">
+                        <span className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-muted-foreground ring-4 ring-background"></span>
+                        <h4 className="font-semibold text-muted-foreground text-sm">
+                          Resolution & Discharge
+                        </h4>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" /> Treatment Plan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-semibold text-sm mb-1">Diagnosis</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {activeCase.primaryCondition}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />{" "}
+                      Recent Updates
+                    </h4>
+                    <ul className="space-y-2">
+                      {activeCase.clinicalNotes.slice(0, 2).map(note => (
+                        <li
+                          key={note.id}
+                          className="text-sm text-muted-foreground flex items-start gap-3 bg-card p-3 border rounded-lg"
+                        >
+                          <span className="w-2 h-2 bg-primary/60 rounded-full mt-1.5 shrink-0"></span>
+                          <span>{note.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "profile" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-primary" /> Patient Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-6" onSubmit={e => e.preventDefault()}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Full Name</Label>
+                      <Input defaultValue={patient.fullName} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Date of Birth</Label>
+                      {patient.dob ? (
+                        <DatePicker
+                          date={new Date(patient.dob)}
+                          className="w-full"
+                        />
+                      ) : (
+                        <DatePicker className="w-full" />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Blood Group</Label>
+                      <Input defaultValue={patient.bloodGroup} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Known Allergies</Label>
+                      <Input defaultValue={patient.allergies.join(", ")} />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6 mt-6">
+                    <h4 className="font-semibold mb-4">Guardian Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Guardian Name</Label>
+                        <Input defaultValue={patient.guardianName} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Contact Number</Label>
+                        <Input defaultValue={patient.guardianPhone} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button type="button">Save Changes</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "documents" && (
+            <div className="space-y-6">
+              <Card className="border-dashed border-2 bg-muted/30">
+                <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+                  <FileUp className="w-12 h-12 text-primary/50 mb-4" />
+                  <h3 className="text-lg font-bold mb-1">
+                    Upload Medical Report
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                    Upload past prescriptions, lab results, or imaging reports
+                    to share with the care team.
+                  </p>
+                  <Button render={<label className="cursor-pointer" />}>
+                    Browse Files
+                    <input type="file" className="hidden" />
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Previous Uploads</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">
+                            Previous_Echo_Report.pdf
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Uploaded on Sept 01, 2026
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="link" size="sm">
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "careteam" && (
+            <div className="space-y-6">
+              {assignedSpecialist && (
+                <Card className="overflow-hidden border-0 shadow-md">
+                  <div className="bg-primary p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5 text-primary-foreground">
+                    <img
+                      src={assignedSpecialist.avatar}
+                      alt={assignedSpecialist.name}
+                      className="w-20 h-20 rounded-full ring-4 ring-primary-foreground/30 object-cover bg-primary/50 shrink-0"
+                    />
+                    <div className="text-center sm:text-left flex-1">
+                      <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-wider mb-1">
+                        Assigned Specialist
+                      </p>
+                      <h2 className="text-2xl font-bold">
+                        {assignedSpecialist.name}
+                      </h2>
+                      <p className="text-primary-foreground/90 text-sm mt-1">
+                        {assignedSpecialist.title}
+                      </p>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setIsTeleconsultOpen(true)}
+                      className="mt-4 sm:mt-0 gap-2 w-full sm:w-auto"
+                    >
+                      <Video className="w-4 h-4" /> Teleconsult
+                    </Button>
+                  </div>
+
+                  <TeleconsultModal
+                    isOpen={isTeleconsultOpen}
+                    onClose={() => setIsTeleconsultOpen(false)}
+                    patientName={patient.fullName}
+                    specialistName={`Dr. ${assignedSpecialist.name}`}
+                  />
+
+                  <div className="p-6 bg-card">
+                    <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 mb-6">
+                      <h3 className="text-sm font-bold flex items-center gap-2 mb-2 text-primary">
+                        <ShieldCheck className="w-4 h-4" /> AI Selection
+                        Rationale
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {assignedSpecialist.rationale}
+                      </p>
+                    </div>
+                    <Button
+                      variant={secondOpinionRequested ? "secondary" : "outline"}
+                      onClick={handleSecondOpinion}
+                      disabled={secondOpinionRequested}
+                      className="w-full sm:w-auto"
+                    >
+                      {secondOpinionRequested
+                        ? "Second Opinion Logged"
+                        : "Request Second Opinion"}
+                    </Button>
+                  </div>
+                </Card>
+              )}
+
+              <QuickChat
+                patientId={patient.id}
+                currentUserId="U1"
+                currentUserName={patient.guardianName}
+                currentUserRole="Parent"
+              />
+            </div>
+          )}
+
+          {activeTab === "prescriptions" && (
+            <div className="space-y-6">
+              <Card className="bg-primary text-primary-foreground border-none">
+                <CardContent className="p-6 flex flex-col md:flex-row gap-6 justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">
+                      Book Follow-up Appointment
+                    </h3>
+                    <p className="text-primary-foreground/80 text-sm">
+                      Schedule your next consultation with the specialist.
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    className="gap-2"
+                    onClick={() => setIsBookingModalOpen(true)}
+                  >
+                    <Calendar className="w-4 h-4" /> Schedule Now
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Dialog
+                open={isBookingModalOpen}
+                onOpenChange={setIsBookingModalOpen}
+              >
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Book Follow-up Appointment</DialogTitle>
+                    <DialogDescription>
+                      Schedule your next consultation with Dr. Emily Chen
+                      (Pediatric Cardiology).
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {!isBooked ? (
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Select Date</Label>
+                        <DatePicker
+                          date={bookingDate ? new Date(bookingDate) : undefined}
+                          setDate={(d: any) =>
+                            setBookingDate(
+                              d ? d.toISOString().split("T")[0] : ""
+                            )
+                          }
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Select Time Slot</Label>
+                        <Select
+                          value={bookingTime}
+                          onValueChange={val => setBookingTime(val || "")}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Available slots" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                            <SelectItem value="10:30 AM">10:30 AM</SelectItem>
+                            <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                            <SelectItem value="04:15 PM">04:15 PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <DialogFooter className="mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsBookingModalOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled={!bookingDate || !bookingTime}
+                          onClick={() => setIsBooked(true)}
+                        >
+                          Confirm Booking
+                        </Button>
+                      </DialogFooter>
+                    </div>
+                  ) : (
+                    <div className="py-6 flex flex-col items-center justify-center text-center space-y-4 animate-in zoom-in-95 duration-300">
+                      <div className="w-16 h-16 bg-muted text-primary rounded-full flex items-center justify-center mb-2">
+                        <CheckCircle className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-foreground">
+                          Appointment Confirmed
+                        </h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          You are booked for{" "}
+                          {new Date(bookingDate).toLocaleDateString()} at{" "}
+                          {bookingTime}.
+                        </p>
+                      </div>
+                      <Button
+                        className="mt-4"
+                        onClick={() => {
+                          setIsBookingModalOpen(false);
+                          setIsBooked(false);
+                        }}
+                      >
+                        Done
+                      </Button>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Pill className="w-5 h-5 text-primary" /> Active
+                    Prescriptions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        meds: "Amoxicillin 250mg",
+                        dose: "1 tablet every 8 hours",
+                        duration: "7 days",
+                        doc: "Dr. Anitha Raman",
+                      },
+                      {
+                        meds: "Ibuprofen Syrup",
+                        dose: "5ml as needed for fever",
+                        duration: "3 days",
+                        doc: "Dr. Anitha Raman",
+                      },
+                    ].map((rx, i) => (
+                      <div
+                        key={i}
+                        className="p-4 border rounded-lg bg-muted/30 flex flex-col sm:flex-row justify-between sm:items-center gap-4"
+                      >
+                        <div>
+                          <h4 className="font-bold">{rx.meds}</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {rx.dose} • {rx.duration}
+                          </p>
+                          <p className="text-xs text-muted-foreground/80 mt-2">
+                            Prescribed by {rx.doc}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Request Refill
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+
+        <AIHelperBot />
       </main>
     </div>
   );

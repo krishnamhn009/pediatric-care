@@ -1,28 +1,81 @@
+import { DatePicker } from "../components/ui/date-picker";
 import React, { useState } from "react";
 import { usePediatric } from "../context/PediatricContext";
-import { CheckCircle, XCircle, Activity, Save, CheckSquare, Stethoscope, BriefcaseMedical, Video } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Activity,
+  Save,
+  CheckSquare,
+  Stethoscope,
+  BriefcaseMedical,
+  Video,
+  Pill,
+  MessageSquare,
+  FileHeart,
+  ClipboardList,
+} from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TeleconsultModal } from "../components/TeleconsultModal";
+import { useAuth } from "../context/AuthContext";
+import { QuickChat } from "../components/QuickChat";
+import { GrowthChart } from "../components/GrowthChart";
+import { VaccinationSchedule } from "../components/VaccinationSchedule";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export function SpecialistWorkspacePage() {
- const { cases, specialists, acceptSpecialist, overrideSpecialist, updateCaseStage, addClinicalNote, closeCase } = usePediatric();
+  const { user } = useAuth();
+  const { cases, updateCaseStage, addClinicalNote, closeCase, getPatientById } =
+    usePediatric();
 
- // Find cases assigned to a mock specialist, or pending recommendation
- const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
- 
- // States for different sections
- const [declineReason, setDeclineReason] = useState("");
- const [icdCode, setIcdCode] = useState("");
- const [consultOutcome, setConsultOutcome] = useState("");
- const [treatmentPlan, setTreatmentPlan] = useState("");
- const [isTeleconsultOpen, setIsTeleconsultOpen] = useState(false);
- 
- const pendingCases = cases.filter(c => c.currentStage === 5 || c.currentStage === 4);
- const activeCases = cases.filter(c => c.currentStage >= 6 && c.currentStage < 10);
- 
- const selectedCase = cases.find(c => c.id === selectedCaseId);
+  // Find cases assigned to a mock specialist, or pending recommendation
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
- const handleAccept = (caseId: string) => {
-    updateCaseStage(caseId, 6, "Specialist accepted referral. Consultation initiated.");
+  // States for different sections
+  const [declineReason, setDeclineReason] = useState("");
+  const [icdCode, setIcdCode] = useState("");
+  const [consultOutcome, setConsultOutcome] = useState("");
+  const [treatmentPlan, setTreatmentPlan] = useState("");
+  const [isTeleconsultOpen, setIsTeleconsultOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("consultation");
+
+  const pendingCases = cases.filter(
+    c => c.currentStage === 5 || c.currentStage === 4
+  );
+  const activeCases = cases.filter(
+    c => c.currentStage >= 6 && c.currentStage < 10
+  );
+
+  const selectedCase = cases.find(c => c.id === selectedCaseId);
+  const patient = selectedCase
+    ? getPatientById(selectedCase.patientId)
+    : undefined;
+
+  const handleAccept = (caseId: string) => {
+    updateCaseStage(
+      caseId,
+      6,
+      "Specialist accepted referral. Consultation initiated."
+    );
     setSelectedCaseId(caseId);
   };
 
@@ -35,194 +88,394 @@ export function SpecialistWorkspacePage() {
     setDeclineReason("");
   };
 
- const handleDiagnosisSubmit = () => {
- if (!selectedCaseId || !icdCode || !consultOutcome) return;
- addClinicalNote(selectedCaseId, `Consultation Outcome: ${consultOutcome} | Diagnosis: ${icdCode}`);
- updateCaseStage(selectedCaseId, 8, `Diagnosis confirmed: ${icdCode}`);
- setIcdCode("");
- setConsultOutcome("");
- };
+  const handleDiagnosisSubmit = () => {
+    if (!selectedCaseId || !icdCode || !consultOutcome) return;
+    addClinicalNote(
+      selectedCaseId,
+      `Consultation Outcome: ${consultOutcome} | Diagnosis: ${icdCode}`
+    );
+    updateCaseStage(selectedCaseId, 8, `Diagnosis confirmed: ${icdCode}`);
+    setIcdCode("");
+    setConsultOutcome("");
+  };
 
- const handleTreatmentPlanSubmit = () => {
- if (!selectedCaseId || !treatmentPlan) return;
- addClinicalNote(selectedCaseId, `Treatment Plan Initiated: ${treatmentPlan}`);
- updateCaseStage(selectedCaseId, 9, "Treatment plan initiated and monitoring active");
- setTreatmentPlan("");
- };
+  const handleTreatmentPlanSubmit = () => {
+    if (!selectedCaseId || !treatmentPlan) return;
+    addClinicalNote(
+      selectedCaseId,
+      `Treatment Plan Initiated: ${treatmentPlan}`
+    );
+    updateCaseStage(
+      selectedCaseId,
+      9,
+      "Treatment plan initiated and monitoring active"
+    );
+    setTreatmentPlan("");
+  };
 
- const handleCaseClosure = () => {
- if (!selectedCaseId) return;
- const res = closeCase(selectedCaseId, true);
- if (!res.success) {
- alert(res.error);
- } else {
- setSelectedCaseId(null);
- }
- };
+  const handleCaseClosure = () => {
+    if (!selectedCaseId) return;
+    const res = closeCase(selectedCaseId, true);
+    if (!res.success) {
+      alert(res.error);
+    } else {
+      setSelectedCaseId(null);
+    }
+  };
 
- return (
- <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in zoom-in duration-500">
- <div className="flex items-center space-x-3 mb-6">
- <Stethoscope className="w-8 h-8 text-[#0891B2]" />
- <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Specialist Workspace</h1>
- </div>
+  return (
+    <div className="space-y-8 max-w-7xl mx-auto py-8">
+      <div className="flex items-center space-x-3 mb-6 border-b pb-6">
+        <Stethoscope className="w-8 h-8 text-primary" />
+        <h1 className="text-3xl font-bold tracking-tight">
+          Specialist Workspace
+        </h1>
+      </div>
 
- <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
- {/* Sidebar: Case Queue */}
- <div className="lg:col-span-1 space-y-6">
- <div className="bg-white rounded-none shadow-none border border-cyan-100 border border-gray-100 overflow-hidden">
- <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4">
- <h2 className="text-lg font-semibold text-white">Referral Inbox</h2>
- </div>
- <div className="p-4 space-y-4 max-h-[300px] overflow-y-auto">
- {pendingCases.length === 0 && <p className="text-gray-500 text-sm">No pending referrals.</p>}
- {pendingCases.map(c => (
- <div key={c.id} className="border border-gray-200 rounded-none p-4 bg-gray-50 hover:shadow-md transition">
- <div className="font-semibold text-gray-800">{c.patientName}</div>
- <div className="text-sm text-gray-600 mb-2">{c.primaryCondition}</div>
- <div className="flex space-x-2 mt-3">
- <button onClick={() => handleAccept(c.id)} className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 rounded-none flex items-center justify-center transition">
- <CheckCircle className="w-4 h-4 mr-1" /> Accept
- </button>
- </div>
- <div className="mt-2 space-y-2">
- <select 
- className="w-full text-sm border-gray-300 rounded-none p-2"
- value={declineReason}
- onChange={(e) => setDeclineReason(e.target.value)}
- >
- <option value="">Select decline reason...</option>
- <option value="Over capacity">Over capacity</option>
- <option value="Outside sub-specialty">Outside sub-specialty</option>
- <option value="Conflict of interest">Conflict of interest</option>
- </select>
- <button onClick={() => handleDecline(c.id)} className="w-full bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium py-2 rounded-none flex items-center justify-center transition border border-red-200">
- <XCircle className="w-4 h-4 mr-1" /> Decline
- </button>
- </div>
- </div>
- ))}
- </div>
- </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Sidebar: Case Queue */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="overflow-hidden border-primary/20">
+            <div className="bg-primary p-4 text-primary-foreground">
+              <h2 className="text-lg font-semibold">Referral Inbox</h2>
+            </div>
+            <CardContent className="p-4 space-y-4 max-h-[300px] overflow-y-auto bg-muted/10">
+              {pendingCases.length === 0 && (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No pending referrals.
+                </p>
+              )}
+              {pendingCases.map(c => (
+                <div
+                  key={c.id}
+                  className="border rounded-lg p-4 bg-card hover:border-primary/50 transition-colors shadow-sm"
+                >
+                  <div className="font-bold">{c.patientName}</div>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    {c.primaryCondition}
+                  </div>
+                  <div className="flex space-x-2 mb-4">
+                    <Button
+                      onClick={() => handleAccept(c.id)}
+                      className="w-full bg-primary hover:bg-primary gap-1.5"
+                    >
+                      <CheckCircle className="w-4 h-4" /> Accept
+                    </Button>
+                  </div>
+                  <div className="space-y-3 pt-3 border-t">
+                    <Select
+                      value={declineReason}
+                      onValueChange={val => setDeclineReason(val || "")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select decline reason..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Over capacity">
+                          Over capacity
+                        </SelectItem>
+                        <SelectItem value="Outside sub-specialty">
+                          Outside sub-specialty
+                        </SelectItem>
+                        <SelectItem value="Conflict of interest">
+                          Conflict of interest
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDecline(c.id)}
+                      className="w-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive gap-1.5"
+                    >
+                      <XCircle className="w-4 h-4" /> Decline
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
- <div className="bg-white rounded-none shadow-none border border-cyan-100 border border-gray-100 overflow-hidden">
- <div className="bg-gray-100 p-4 border-b border-gray-200">
- <h2 className="text-lg font-semibold text-gray-800">My Active Cases</h2>
- </div>
- <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
- {activeCases.map(c => (
- <button 
- key={c.id}
- onClick={() => setSelectedCaseId(c.id)}
- className={`w-full text-left p-3 rounded-none border transition ${selectedCaseId === c.id ? 'border-blue-500 bg-cyan-50' : 'border-gray-200 hover:border-blue-300'}`}
- >
- <div className="font-semibold text-gray-800">{c.patientName}</div>
- <div className="text-xs text-[#0891B2] mt-1">Stage: {c.currentStage}</div>
- </button>
- ))}
- </div>
- </div>
- </div>
+          <Card>
+            <CardHeader className="bg-muted/50 pb-4">
+              <CardTitle className="text-lg">My Active Cases</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+              {activeCases.map(c => (
+                <Button
+                  key={c.id}
+                  variant={selectedCaseId === c.id ? "default" : "outline"}
+                  onClick={() => setSelectedCaseId(c.id)}
+                  className={`w-full justify-start flex-col items-start h-auto p-3 ${selectedCaseId === c.id ? "" : "hover:border-primary/50"}`}
+                >
+                  <div className="font-semibold text-base">{c.patientName}</div>
+                  <div
+                    className={`text-xs mt-1 ${selectedCaseId === c.id ? "text-primary-foreground/80" : "text-primary"}`}
+                  >
+                    Stage: {c.currentStage}
+                  </div>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
 
- {/* Main Workspace Area */}
- <div className="lg:col-span-2 space-y-6">
- {selectedCase ? (
- <div className="space-y-6">
- {/* Consultation & Diagnosis */}
- <div className="bg-white rounded-none shadow-md border border-gray-100 p-6">
- <div className="flex items-center justify-between mb-4">
- <div className="flex items-center space-x-2">
- <Activity className="w-5 h-5 text-indigo-600" />
- <h2 className="text-xl font-bold text-gray-800">Consultation & Diagnosis</h2>
- </div>
- <button 
-  onClick={() => setIsTeleconsultOpen(true)}
-  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center shadow-sm"
- >
- <Video className="w-4 h-4 mr-2" /> Launch Virtual Teleconsultation
- </button>
- </div>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-1">ICD-10/ICD-11 Code</label>
- <select 
- className="w-full border-gray-300 rounded-none p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
- value={icdCode}
- onChange={(e) => setIcdCode(e.target.value)}
- >
- <option value="">Select confirmed diagnosis...</option>
- <option value="Q21.0 - Ventricular Septal Defect">Q21.0 - Ventricular Septal Defect</option>
- <option value="G40.3 - Generalized Idiopathic Epilepsy">G40.3 - Generalized Idiopathic Epilepsy</option>
- <option value="J21.9 - Acute Bronchiolitis, Unspecified">J21.9 - Acute Bronchiolitis, Unspecified</option>
- <option value="Q21.3 - Tetralogy of Fallot">Q21.3 - Tetralogy of Fallot</option>
- </select>
- </div>
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-1">Consultation Outcome</label>
- <input 
- type="text"
- placeholder="e.g., Patient stable, continue meds"
- className="w-full border-gray-300 rounded-none p-2.5 focus:ring-2 focus:ring-indigo-500"
- value={consultOutcome}
- onChange={(e) => setConsultOutcome(e.target.value)}
- />
- </div>
- </div>
- <button onClick={handleDiagnosisSubmit} disabled={!icdCode || !consultOutcome} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-none flex items-center transition disabled:opacity-50">
- <Save className="w-4 h-4 mr-2" /> Save Diagnosis
- </button>
- </div>
+        {/* Main Workspace Area */}
+        <div className="lg:col-span-2 space-y-6">
+          {selectedCase ? (
+            <div className="space-y-6">
+              {/* Patient Details Header */}
+              <Card>
+                <CardContent className="p-6 flex flex-col md:flex-row justify-between gap-6">
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {selectedCase.patientName}
+                    </h2>
+                    <p className="text-muted-foreground mt-1 text-sm font-medium">
+                      ID: {selectedCase.patientId} • Age: {selectedCase.ageText}{" "}
+                      • Ward: {selectedCase.ward}
+                    </p>
+                    <p className="mt-3 text-sm">
+                      <strong>Chief Complaint:</strong>{" "}
+                      {selectedCase.chiefComplaint}
+                    </p>
+                  </div>
+                  <div className="text-left md:text-right bg-muted/50 p-4 rounded-lg border h-fit">
+                    <div className="text-xs uppercase text-muted-foreground font-bold tracking-wider mb-2">
+                      Latest Vitals
+                    </div>
+                    <div className="text-sm font-medium whitespace-nowrap">
+                      HR:{" "}
+                      <span className="text-destructive font-bold">
+                        {selectedCase.vitals?.heartRate}
+                      </span>{" "}
+                      | SpO2: {selectedCase.vitals?.spO2}% | Temp:{" "}
+                      {selectedCase.vitals?.temperature}°C
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
- {/* Treatment Plan Builder */}
- <div className="bg-white rounded-none shadow-md border border-gray-100 p-6">
- <div className="flex items-center space-x-2 mb-4">
- <BriefcaseMedical className="w-5 h-5 text-teal-600" />
- <h2 className="text-xl font-bold text-gray-800">Treatment Plan Builder</h2>
- </div>
- <div className="mb-4">
- <label className="block text-sm font-medium text-gray-700 mb-1">Protocol / Interventions / Milestones</label>
- <textarea 
- rows={4}
- placeholder="Enter personalized treatment plan linked to evidence-based protocol..."
- className="w-full border-gray-300 rounded-none p-3 focus:ring-2 focus:ring-teal-500"
- value={treatmentPlan}
- onChange={(e) => setTreatmentPlan(e.target.value)}
- ></textarea>
- </div>
- <button onClick={handleTreatmentPlanSubmit} disabled={!treatmentPlan} className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-none flex items-center transition disabled:opacity-50">
- <CheckSquare className="w-4 h-4 mr-2" /> Initiate Plan
- </button>
- </div>
+              {/* Patient Historical Data: Growth & Vaccinations */}
+              {patient?.growthRecords && patient.growthRecords.length > 0 && (
+                <GrowthChart records={patient.growthRecords} />
+              )}
+              {patient?.vaccinations && patient.vaccinations.length > 0 && (
+                <VaccinationSchedule records={patient.vaccinations} />
+              )}
 
- {/* Case Closure */}
- <div className="bg-green-50 border border-green-200 rounded-none p-6 flex flex-col sm:flex-row items-center justify-between shadow-none border border-cyan-100">
- <div>
- <h3 className="text-lg font-bold text-green-800">Clinical Resolution</h3>
- <p className="text-sm text-green-700 mt-1">Sign off on this case to confirm all milestones have been met.</p>
- </div>
- <button onClick={handleCaseClosure} className="mt-4 sm:mt-0 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-none flex items-center transition transform hover:scale-105 shadow-md">
- <CheckCircle className="w-5 h-5 mr-2" /> Sign-off & Close Case
- </button>
- </div>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="w-full justify-start gap-1 bg-white/[0.04] border border-white/10 rounded-xl p-1 h-auto flex-wrap">
+                  <TabsTrigger value="consultation" className="gap-1.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"><Activity className="w-4 h-4" /> Consultation</TabsTrigger>
+                  <TabsTrigger value="prescriptions" className="gap-1.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"><Pill className="w-4 h-4" /> Prescriptions</TabsTrigger>
+                  <TabsTrigger value="plan" className="gap-1.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"><BriefcaseMedical className="w-4 h-4" /> Treatment Plan</TabsTrigger>
+                  <TabsTrigger value="chat" className="gap-1.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"><MessageSquare className="w-4 h-4" /> Team Chat</TabsTrigger>
+                  <TabsTrigger value="closure" className="gap-1.5 data-[state=active]:bg-white data-[state=active]:text-black rounded-lg"><CheckCircle className="w-4 h-4" /> Closure</TabsTrigger>
+                </TabsList>
 
- </div>
- ) : (
- <div className="h-full min-h-[400px] flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-none text-gray-500">
- <Stethoscope className="w-16 h-16 text-gray-300 mb-4" />
- <p className="text-lg font-medium">Select a case from your queue to begin.</p>
- </div>
- )}
- </div>
- </div>
+                <TabsContent value="consultation" className="mt-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-primary" />
+                    Consultation & Diagnosis
+                  </CardTitle>
+                  <Button
+                    onClick={() => setIsTeleconsultOpen(true)}
+                    className="gap-2 rounded-full bg-white text-black hover:bg-white/90"
+                  >
+                    <Video className="w-4 h-4" /> Virtual Consult
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 mt-4">
+                    <div className="space-y-2">
+                      <Label>Consult Duration (mins)</Label>
+                      <Input type="number" placeholder="e.g. 15" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>ICD-10/ICD-11 Code</Label>
+                      <Select
+                        value={icdCode}
+                        onValueChange={val => setIcdCode(val || "")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select diagnosis..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Q21.0 - Ventricular Septal Defect">
+                            Q21.0 - Ventricular Septal Defect
+                          </SelectItem>
+                          <SelectItem value="G40.3 - Generalized Idiopathic Epilepsy">
+                            G40.3 - Generalized Idiopathic Epilepsy
+                          </SelectItem>
+                          <SelectItem value="J21.9 - Acute Bronchiolitis, Unspecified">
+                            J21.9 - Acute Bronchiolitis, Unspecified
+                          </SelectItem>
+                          <SelectItem value="Q21.3 - Tetralogy of Fallot">
+                            Q21.3 - Tetralogy of Fallot
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Consultation Outcome</Label>
+                      <Input
+                        type="text"
+                        placeholder="e.g., Patient stable, continue meds"
+                        value={consultOutcome}
+                        onChange={e => setConsultOutcome(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleDiagnosisSubmit}
+                    disabled={!icdCode || !consultOutcome}
+                    className="gap-2"
+                  >
+                    <Save className="w-4 h-4" /> Save Diagnosis
+                  </Button>
+                </CardContent>
+              </Card>
 
- {selectedCase && (
-  <TeleconsultModal
-    isOpen={isTeleconsultOpen}
-    onClose={() => setIsTeleconsultOpen(false)}
-    patientName={selectedCase.patientName}
-    specialistName={selectedCase.assignedSpecialistName || "Specialist"}
-  />
- )}
- </div>
- );
+                </TabsContent>
+                <TabsContent value="prescriptions" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Pill className="w-5 h-5 text-primary" />
+                    Prescribe & Schedule Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-2">
+                      <Label>Add Prescription</Label>
+                      <Textarea
+                        placeholder="e.g. Amoxicillin 250mg, 1 tablet q8h for 7 days"
+                        className="min-h-[120px]"
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Schedule Follow-up</Label>
+                        <DatePicker className="w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Visit Type</Label>
+                        <Select defaultValue="in-person">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="in-person">
+                              In-person Visit
+                            </SelectItem>
+                            <SelectItem value="teleconsult">
+                              Teleconsultation
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <Button className="bg-primary hover:bg-primary gap-2">
+                    <Save className="w-4 h-4" /> Issue Prescription & Schedule
+                  </Button>
+                </CardContent>
+              </Card>
+
+                </TabsContent>
+                <TabsContent value="plan" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BriefcaseMedical className="w-5 h-5 text-primary" />
+                    Treatment Plan Builder
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 mb-6">
+                    <Label>Protocol / Interventions / Milestones</Label>
+                    <Textarea
+                      placeholder="Enter personalized treatment plan linked to evidence-based protocol..."
+                      className="min-h-[120px]"
+                      value={treatmentPlan}
+                      onChange={e => setTreatmentPlan(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleTreatmentPlanSubmit}
+                    disabled={!treatmentPlan}
+                    className="bg-primary hover:bg-primary gap-2"
+                  >
+                    <CheckSquare className="w-4 h-4" /> Initiate Plan
+                  </Button>
+                </CardContent>
+              </Card>
+
+                </TabsContent>
+                <TabsContent value="closure" className="mt-4">
+              <Card className="bg-card border-white/10 solaris-card">
+                <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-primary">
+                      Clinical Resolution
+                    </h3>
+                    <p className="text-sm text-primary mt-1">
+                      Sign off on this case to confirm all milestones have been
+                      met.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleCaseClosure}
+                    className="bg-primary hover:bg-primary gap-2 shrink-0"
+                    size="lg"
+                  >
+                    <CheckCircle className="w-5 h-5" /> Sign-off & Close Case
+                  </Button>
+                </CardContent>
+              </Card>
+                </TabsContent>
+                <TabsContent value="chat" className="mt-4">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 flex items-center gap-2 text-sm">
+                    <MessageSquare className="w-4 h-4" /> Team collaboration — select doctors and chat below
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          ) : (
+            <Card className="border-dashed bg-card border-white/10 solaris-card">
+              <CardContent className="h-[400px] flex flex-col items-center justify-center text-center">
+                <Stethoscope className="w-16 h-16 text-muted-foreground/30 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Case Selected</h3>
+                <p className="text-muted-foreground">
+                  Select a case from your queue to begin.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {selectedCase && (
+            <div className="mt-8">
+              <QuickChat
+                patientId={selectedCase.patientId}
+                currentUserId={user?.id || "U-SPEC"}
+                currentUserName={user?.name || "Specialist"}
+                currentUserRole="Specialist"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {selectedCase && (
+        <TeleconsultModal
+          isOpen={isTeleconsultOpen}
+          onClose={() => setIsTeleconsultOpen(false)}
+          patientName={selectedCase.patientName}
+          specialistName={selectedCase.assignedSpecialistName || "Specialist"}
+        />
+      )}
+    </div>
+  );
 }
